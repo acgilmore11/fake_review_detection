@@ -86,6 +86,7 @@ def review_centric_textual(table):
 
     text_statistics = pd.DataFrame.from_dict(statistics_table)
     return text_statistics
+
 def reviewer_burst_features(table):
     ## Density
     df1 = table.groupby([ 'prod_id', 'date'], as_index=False)['review'].agg('count')
@@ -94,11 +95,17 @@ def reviewer_burst_features(table):
     ## Mean Rating Deviation
     df2 = table.groupby([ 'prod_id', 'date'], as_index=False).agg(MRD=pd.NamedAgg(column ='rating', aggfunc='mad'))
     table = pd.merge(table,df2, left_on=['prod_id', 'date'],right_on=['prod_id', 'date'], validate = 'm:1')
+    ## Mean Rating Deviation
+    df4 = table.groupby([ 'prod_id','date'], as_index=False).agg(avg_date=pd.NamedAgg(column ='rating', aggfunc=np.mean))
+    table = pd.merge(table,df4, left_on=['prod_id','date'],right_on=['prod_id','date'], validate = 'm:1')
     ## Deviation From The Local Mean
     df3 = table.groupby([ 'prod_id'], as_index=False).agg(avg=pd.NamedAgg(column ='rating', aggfunc=np.mean))
     table = pd.merge(table,df3, left_on=['prod_id'],right_on=['prod_id'], validate = 'm:1')
     table['DFTLM'] = table['rating'] - table['avg']
+    table['MRD'] = (table['avg_date'] - table['avg'])
+
     table = table.drop(['avg'], axis=1)
+    table = table.drop(['MRD'], axis=1)
 
     return table
 
