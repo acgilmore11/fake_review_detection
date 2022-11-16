@@ -20,13 +20,11 @@ def undersample(table):
 # rating_deviation feature:  the deviation of the evaluation provided in the review with respect to the entity’s average rating
 #abs(product_rating - avg_product_rating)/4
 
-
 def rating_deviation(table):
-    avg_rating = table[['prod_id', 'rating']].groupby(
-        ['prod_id']).mean().rename(columns={'rating': 'avg_rating'})
+    avg_rating = table[['prod_id', 'rating']].groupby(['prod_id']).agg(avg=pd.NamedAgg(column='rating', aggfunc='mean'),
+                                                                       count=pd.NamedAgg(column='rating', aggfunc='count'))
     table = pd.merge(table, avg_rating, on='prod_id', how='inner')
-    table['rating_deviation'] = abs(table['rating'] - table['avg_rating']) / 4
-    return table['rating_deviation']
+    return pd.DataFrame.from_dict({'rating_deviation': abs(table['rating'] - table['avg']) / table['count']})
 
 # singleton feature: 1 if review is the only review written that day by user, 0 otherwise
 
