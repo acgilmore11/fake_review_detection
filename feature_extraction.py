@@ -93,9 +93,6 @@ def reviewer_burst_features(table):
     df1.rename(columns={'review': 'density'}, inplace=True)
     table = pd.merge(table,df1, left_on=['prod_id', 'date'],right_on=['prod_id', 'date'], validate = 'm:1')
     ## Mean Rating Deviation
-    df2 = table.groupby([ 'prod_id', 'date'], as_index=False).agg(MRD=pd.NamedAgg(column ='rating', aggfunc='mad'))
-    table = pd.merge(table,df2, left_on=['prod_id', 'date'],right_on=['prod_id', 'date'], validate = 'm:1')
-    ## Mean Rating Deviation
     df4 = table.groupby([ 'prod_id','date'], as_index=False).agg(avg_date=pd.NamedAgg(column ='rating', aggfunc=np.mean))
     table = pd.merge(table,df4, left_on=['prod_id','date'],right_on=['prod_id','date'], validate = 'm:1')
     ## Deviation From The Local Mean
