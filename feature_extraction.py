@@ -102,7 +102,7 @@ def reviewer_burst_features(table):
     table['MRD'] = (table['avg_date'] - table['avg'])
 
     table = table.drop(['avg'], axis=1)
-    table = table.drop(['MRD'], axis=1)
+    table = table.drop(['avg_date'], axis=1)
 
     return table
 
