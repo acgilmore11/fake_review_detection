@@ -9,23 +9,28 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
 
 
-#performs undersampling on data
+# performs undersampling on data
 # keeps fake reviews and obtains random sample of real reviews such that # of each class are equal
 def undersample(table):
     fake_reviews = table[table['label'] == -1]
     real_reviews = table[table['label'] == 1].sample(n=fake_reviews.shape[0])
-    sample = pd.concat([fake_reviews,real_reviews], ignore_index=True)
+    sample = pd.concat([fake_reviews, real_reviews], ignore_index=True)
     return sample
 
-#rating_deviation feature:  the deviation of the evaluation provided in the review with respect to the entity’s average rating
+# rating_deviation feature:  the deviation of the evaluation provided in the review with respect to the entity’s average rating
 #abs(product_rating - avg_product_rating)/4
+
+
 def rating_deviation(table):
-    avg_rating = table[['prod_id', 'rating']].groupby(['prod_id']).mean().rename(columns={'rating': 'avg_rating'})
+    avg_rating = table[['prod_id', 'rating']].groupby(
+        ['prod_id']).mean().rename(columns={'rating': 'avg_rating'})
     table = pd.merge(table, avg_rating, on='prod_id', how='inner')
     table['rating_deviation'] = abs(table['rating'] - table['avg_rating']) / 4
     return table['rating_deviation']
 
-#singleton feature: 1 if review is the only review written that day by user, 0 otherwise
+# singleton feature: 1 if review is the only review written that day by user, 0 otherwise
+
+
 def singleton(table):
     date_counts = table.groupby(['user_id', 'date']).size().to_frame('size')
     table = pd.merge(table, date_counts, on=['user_id', 'date'], how='left')
@@ -33,7 +38,9 @@ def singleton(table):
     table['singleton'] = table['singleton'].astype('int')
     return table['singleton']
 
-#textual features
+# textual features
+
+
 def review_centric_textual(table):
     """
     Text statistics: 
@@ -43,11 +50,12 @@ def review_centric_textual(table):
     Ratio of first person pronouns,e.g.,‘I’,‘mine’,‘my’, etc.;
     Ratio of ‘exclamation’ sentences, i.e., ending with the symbol ‘!’. 
     """
-    statistics_table = {"RationOfCapL":[], "RatioOfCapW":[], "RatioOfFirstPerson":[], "RatioOfExclamation":[]} #, "sentiment":[]
-    first_person_pronouns = set(["i", "mine", "my", "me", "we", "our", "us", "ourselves", "ours"])
+    statistics_table = {"RationOfCapL": [], "RatioOfCapW": [
+    ], "RatioOfFirstPerson": [], "RatioOfExclamation": []}  # , "sentiment":[]
+    first_person_pronouns = set(
+        ["i", "mine", "my", "me", "we", "our", "us", "ourselves", "ours"])
 
-
-    for i , row in table.iterrows():
+    for i, row in table.iterrows():
         sentences = sent_tokenize(row["review"])
         countExclamation = 0
         wordCountinAReview = 0
@@ -57,12 +65,12 @@ def review_centric_textual(table):
         for sentence in sentences:
             if sentence[-1] == "!":
                 countExclamation += 1
-            sentence = sentence.translate(str.maketrans('', '', string.punctuation))
+            sentence = sentence.translate(
+                str.maketrans('', '', string.punctuation))
             sentence = sentence.split(" ")
 
             wordCountinAReview += len(sentence)
 
-            
             for word in sentence:
                 if word.isupper():
                     countCapW += 1
@@ -73,7 +81,7 @@ def review_centric_textual(table):
                         countCapL += 1
                         break
 
-        RatioOfExclamation =  countExclamation/len(sentences) 
+        RatioOfExclamation = countExclamation/len(sentences)
         RationOfCapL = countCapL/wordCountinAReview
         RatioOfCapW = countCapW/wordCountinAReview
         RatioOfFirstPerson = countFirstP/wordCountinAReview
@@ -82,41 +90,43 @@ def review_centric_textual(table):
         statistics_table["RatioOfCapW"].append(RatioOfCapW)
         statistics_table["RatioOfFirstPerson"].append(RatioOfFirstPerson)
 
-
-
     text_statistics = pd.DataFrame.from_dict(statistics_table)
     return text_statistics
 
-#this function is producing an array memory error, needs to be fixed
+# this function is producing an array memory error, needs to be fixed
+
+
 def reviewer_centric_textual(table):
-    df=table[['user_id','review']]
+    df = table[['user_id', 'review']]
 
     sentences = [sent.lower() for sent in df['review']]
-    processed_sentences = [re.sub('[^a-zA-Z]', ' ',sent) for sent in sentences]
-    processed_article = [re.sub(r'\s+', ' ', sent) for sent in processed_sentences]
+    processed_sentences = [re.sub('[^a-zA-Z]', ' ', sent)
+                           for sent in sentences]
+    processed_article = [re.sub(r'\s+', ' ', sent)
+                         for sent in processed_sentences]
 
     df['Word_number_average'] = df['review'].str.split(" ").str.len()
 
-    tfidfvectorizer  = TfidfVectorizer(min_df=0,analyzer='word',stop_words= 'english')
-    tfidf_wm=tfidfvectorizer.fit_transform(processed_article)
+    tfidfvectorizer = TfidfVectorizer(
+        min_df=0, analyzer='word', stop_words='english')
+    tfidf_wm = tfidfvectorizer.fit_transform(processed_article)
     tfidf_tokens = tfidfvectorizer.get_feature_names_out()
     #df_tfidfvect = pd.DataFrame(data = tfidf_wm.toarray(),index = df['id'],columns = tfidf_tokens)
     df_tfidfvect = tfidf_wm.toarray()
 
-    cosine=1-pairwise_distances(df_tfidfvect, metric='cosine')
-    np.fill_diagonal(cosine,0)
+    cosine = 1-pairwise_distances(df_tfidfvect, metric='cosine')
+    np.fill_diagonal(cosine, 0)
 
-    max_content_similarity=[]
-    for i in range(0,len(cosine)):
-        max_content_similarity.append(round(max(cosine[i]),3))
+    max_content_similarity = []
+    for i in range(0, len(cosine)):
+        max_content_similarity.append(round(max(cosine[i]), 3))
 
-    df['Maximum_Content_Similarity']=max_content_similarity    
+    df['Maximum_Content_Similarity'] = max_content_similarity
 
-    avg_content_similarity=[]
-    for i in range(0,len(cosine)):
-        avg_content_similarity.append(round(mean(cosine[i]),3))
+    avg_content_similarity = []
+    for i in range(0, len(cosine)):
+        avg_content_similarity.append(round(mean(cosine[i]), 3))
 
-    df['Average_Content_Similarity']=avg_content_similarity
+    df['Average_Content_Similarity'] = avg_content_similarity
 
-    return df[['Maximum_Content_Similarity','Average_Content_Similarity','Word_number_average']]
-    
+    return df[['Maximum_Content_Similarity', 'Average_Content_Similarity', 'Word_number_average']]
