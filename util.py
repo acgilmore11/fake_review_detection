@@ -1,5 +1,6 @@
 
 import csv
+from math import sqrt, pow, exp
 
 
 #converts tab separated .txt file to .csv

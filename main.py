@@ -1,10 +1,7 @@
 import pandas as pd
 import numpy as np
 import nltk
-from features import *
-
-
-
+from feature_extraction import *
 
 def main():
     #download punkt package
@@ -17,11 +14,16 @@ def main():
     reviewContent = pd.read_csv(data_path+"/reviewContent.csv", names = cols_reviewContent)
     table = pd.concat([meta_data, reviewContent["review"]], axis = 1).dropna()
 
-    #combines original table with feature columns
-    table = pd.concat([table, get_singleton(table), get_rating_deviation(table), GenerateTextStastitics(table)], axis=1)
-    
+    #perform undersampling
+    table = undersample(table)
+
+    #combines original sample dataframe with feature columns
+    #TO ADD FEATURE: create new function in feature_extraction.py that returns Series object,
+    #                add method call to pd.concat function
+    table = pd.concat([table, rating_deviation(table), singleton(table), review_centric_textual(table)], axis=1)
+
     #prints first 10 rows to check
-    print(table.head(10))
+    print(table)
 
 if __name__ == "__main__":
     main()
