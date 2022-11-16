@@ -18,7 +18,7 @@ def main():
     table = undersample(table)
 
     #combines original sample dataframe with feature columns
-    #TO ADD FEATURE: create new function in feature_extraction.py that returns Series object,
+    #TO ADD FEATURE: create new function in feature_extraction.py that returns Series/Dataframe object,
     #                add method call to pd.concat function
     table = pd.concat([table, rating_deviation(table), singleton(table), review_centric_textual(table)], axis=1)
 
