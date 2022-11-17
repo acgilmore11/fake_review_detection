@@ -9,37 +9,41 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
 
 
-# performs undersampling on data
-# keeps fake reviews and obtains random sample of real reviews such that # of each class are equal
 def undersample(table):
+    """
+    Performs undersampling on data by keeping fake reviews and obtaining random sample
+    of real reviews such that # of each class (real and fake) are equal
+    """
     fake_reviews = table[table['label'] == -1]
     real_reviews = table[table['label'] == 1].sample(n=fake_reviews.shape[0])
     sample = pd.concat([fake_reviews, real_reviews], ignore_index=True)
     return sample
 
-# rating_deviation feature:  the deviation of the evaluation provided in the review with respect to the entity’s average rating
-#abs(product_rating - avg_product_rating)/4
 
-def rating_deviation(table):
+def review_metadata(table):
+    """
+    Metadata features: 
+    Rating: rating(1-5) given in review (no calculation needed)
+    Singleton: 1 if review is only one written by user on date, 0 otherwise
+    Rating Deviation: |curr_rating - avg_prod_rating| / # of review for product
+    """
+    # rating deviation
     avg_rating = table[['prod_id', 'rating']].groupby(['prod_id']).agg(avg=pd.NamedAgg(column='rating', aggfunc='mean'),
                                                                        count=pd.NamedAgg(column='rating', aggfunc='count'))
     table = pd.merge(table, avg_rating, on='prod_id', how='inner')
-    return pd.DataFrame.from_dict({'rating_deviation': abs(table['rating'] - table['avg']) / table['count']})
+    table['rating_deviation'] = abs(
+        table['rating'] - table['avg']) / table['count']
 
-# singleton feature: 1 if review is the only review written that day by user, 0 otherwise
-
-
-def singleton(table):
+    # singleton
     date_counts = table.groupby(['user_id', 'date']).size().to_frame('size')
     table = pd.merge(table, date_counts, on=['user_id', 'date'], how='left')
     table['singleton'] = table['size'] == 1
     table['singleton'] = table['singleton'].astype('int')
-    return table['singleton']
 
-# textual features
+    return table[['singleton', 'rating_deviation']]
 
 
-def review_centric_textual(table):
+def review_textual(table):
     """
     Text statistics: 
     Number of words, i.e., the length of the review in terms of words;
@@ -91,31 +95,41 @@ def review_centric_textual(table):
     text_statistics = pd.DataFrame.from_dict(statistics_table)
     return text_statistics
 
-"""
+
+def reviewer_burst(table):
+    """
     Burst features: 
     Density: # reviews for entity on given day
     Mean Rating Deviation(MRD): |avg_prod_rating_on_date - avg_prod_rating|
     Deviation From Local Mean(DFTLM):  |prod_rating - avg_prod_rating_on_date| / # of reviews on date
     """
-def reviewer_burst_features(table):
-     ## Density
-    df1 = table.groupby([ 'prod_id', 'date'], as_index=False)['review'].agg('count')
+    # Density
+    df1 = table.groupby(['prod_id', 'date'], as_index=False)[
+        'review'].agg('count')
     df1.rename(columns={'review': 'density'}, inplace=True)
-    table = pd.merge(table,df1, left_on=['prod_id', 'date'],right_on=['prod_id', 'date'], validate = 'm:1')
-    ## Mean Rating Deviation
-    df4 = table.groupby([ 'prod_id','date'], as_index=False).agg(avg_date=pd.NamedAgg(column='rating', aggfunc='mean'),
-                                                                count_date=pd.NamedAgg(column='rating', aggfunc='count'))
-    table = pd.merge(table,df4, left_on=['prod_id','date'],right_on=['prod_id','date'], validate = 'm:1')
-    ## Deviation From The Local Mean
-    df3 = table.groupby([ 'prod_id'], as_index=False).agg(avg=pd.NamedAgg(column ='rating', aggfunc=np.mean))
-    table = pd.merge(table,df3, left_on=['prod_id'],right_on=['prod_id'], validate = 'm:1')
-    table['DFTLM'] = abs(table['rating'] - table['avg_date']) / table['count_date']
+    table = pd.merge(table, df1, left_on=['prod_id', 'date'], right_on=[
+                     'prod_id', 'date'], validate='m:1')
+
+    # Mean Rating Deviation
+    df4 = table.groupby(['prod_id', 'date'], as_index=False).agg(avg_date=pd.NamedAgg(column='rating', aggfunc='mean'),
+                                                                 count_date=pd.NamedAgg(column='rating', aggfunc='count'))
+    table = pd.merge(table, df4, left_on=['prod_id', 'date'], right_on=[
+                     'prod_id', 'date'], validate='m:1')
+
+    # Deviation From The Local Mean
+    df3 = table.groupby(['prod_id'], as_index=False).agg(
+        avg=pd.NamedAgg(column='rating', aggfunc=np.mean))
+    table = pd.merge(table, df3, left_on=['prod_id'], right_on=[
+                     'prod_id'], validate='m:1')
+    table['DFTLM'] = abs(table['rating'] - table['avg_date']
+                         ) / table['count_date']
     table['MRD'] = abs(table['avg_date'] - table['avg'])
+    
     return table[['density', 'MRD', 'DFTLM']]
 
 
-#this function is producing an array memory error, needs to be fixed
-def reviewer_centric_textual(table):
+# this function is producing an array memory error, needs to be fixed
+def reviewer_textual(table):
     df = table[['user_id', 'review']]
 
     sentences = [sent.lower() for sent in df['review']]
