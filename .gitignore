@@ -1,2 +1,4 @@
 /venv
 /YelpCSV
+/__pycache__
+/.idea
