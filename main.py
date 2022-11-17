@@ -20,10 +20,11 @@ def main():
     #combines original sample dataframe with feature columns
     #TO ADD FEATURE: create new function in feature_extraction.py that returns Series/Dataframe object,
     #                add method call to pd.concat function
-    table = pd.concat([table, rating_deviation(table), singleton(table), review_centric_textual(table)], axis=1)
+    table = pd.concat([table, reviewer_burst_features(table)], axis=1)
+   
 
     #prints first 10 rows to check
-    print(table)
+    print(table.head(20))
 
 if __name__ == "__main__":
     main()

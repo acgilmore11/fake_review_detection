@@ -91,24 +91,27 @@ def review_centric_textual(table):
     text_statistics = pd.DataFrame.from_dict(statistics_table)
     return text_statistics
 
+"""
+    Burst features: 
+    Density: # reviews for entity on given day
+    Mean Rating Deviation(MRD): |avg_prod_rating_on_date - avg_prod_rating|
+    Deviation From Local Mean(DFTLM):  |prod_rating - avg_prod_rating_on_date| / # of reviews on date
+    """
 def reviewer_burst_features(table):
-    ## Density
+     ## Density
     df1 = table.groupby([ 'prod_id', 'date'], as_index=False)['review'].agg('count')
     df1.rename(columns={'review': 'density'}, inplace=True)
     table = pd.merge(table,df1, left_on=['prod_id', 'date'],right_on=['prod_id', 'date'], validate = 'm:1')
     ## Mean Rating Deviation
-    df4 = table.groupby([ 'prod_id','date'], as_index=False).agg(avg_date=pd.NamedAgg(column ='rating', aggfunc=np.mean))
+    df4 = table.groupby([ 'prod_id','date'], as_index=False).agg(avg_date=pd.NamedAgg(column='rating', aggfunc='mean'),
+                                                                count_date=pd.NamedAgg(column='rating', aggfunc='count'))
     table = pd.merge(table,df4, left_on=['prod_id','date'],right_on=['prod_id','date'], validate = 'm:1')
     ## Deviation From The Local Mean
     df3 = table.groupby([ 'prod_id'], as_index=False).agg(avg=pd.NamedAgg(column ='rating', aggfunc=np.mean))
     table = pd.merge(table,df3, left_on=['prod_id'],right_on=['prod_id'], validate = 'm:1')
-    table['DFTLM'] = table['rating'] - table['avg']
-    table['MRD'] = (table['avg_date'] - table['avg'])
-
-    table = table.drop(['avg'], axis=1)
-    table = table.drop(['avg_date'], axis=1)
-
-    return table
+    table['DFTLM'] = abs(table['rating'] - table['avg_date']) / table['count_date']
+    table['MRD'] = abs(table['avg_date'] - table['avg'])
+    return table[['density', 'MRD', 'DFTLM']]
 
 
 #this function is producing an array memory error, needs to be fixed
