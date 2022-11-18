@@ -124,8 +124,26 @@ def reviewer_burst(table):
     table['DFTLM'] = abs(table['rating'] - table['avg_date']
                          ) / table['count_date']
     table['MRD'] = abs(table['avg_date'] - table['avg'])
-    
+
     return table[['density', 'MRD', 'DFTLM']]
+
+
+#i dont think this is working properly
+def reviewer_temporal(table):
+
+    df=table[['user_id','date']]
+    df['Date_pd'] = pd.to_datetime(df['date'])
+    df['Date_int'] = abs(pd.to_datetime(df['Date_pd']).astype(np.int64))
+
+    df=df[['user_id','Date_int']]
+    res = df.groupby('user_id').agg(['mean','var'])
+    res.columns = ['_'.join(c) for c in res.columns.values]
+    #res['Date_var'] = pd.to_timedelta(res['Date_int_var'])/np.timedelta64(1,'D')
+    res['Date_mean'] = pd.to_datetime(res['Date_int_mean'])
+    res['Date_var'] = pd.to_timedelta(res['Date_int_var'])
+    #res['Date_var']=res['Date_var'].fillna(0).astype(int)
+    # res = res[['Date_mean','Date_var']]
+    print(res)
 
 
 # this function is producing an array memory error, needs to be fixed
@@ -163,3 +181,24 @@ def reviewer_textual(table):
     df['Average_Content_Similarity'] = avg_content_similarity
 
     return df[['Maximum_Content_Similarity', 'Average_Content_Similarity', 'Word_number_average']]
+
+
+def max_num_reviews(table):
+    count_table = table[['user_id', 'date', 'rating']].groupby(['user_id', 'date']).agg(count=pd.NamedAgg(column='rating', aggfunc='count'))
+    res = count_table.groupby(['user_id']).agg(MNR=pd.NamedAgg(column='count', aggfunc='max'))
+    table = pd.merge(table, res, on='user_id', how='left')
+    return table['MNR']
+
+# def percent_pos_reviews(table):
+#     # temp = table['user_id']
+    
+#     temp = pd.concat([table['user_id'], table['rating'] >= 4], axis=1)
+#     print(temp['rating'])
+#     temp2 = temp.groupby(['user_id', 'rating']).size().unstack().fillna(0)
+#     print(temp2)
+#     # temp['PPR'] = temp[True] / (temp[True] + temp[False])
+#     # table = pd.merge(table, temp[['user_id', 'PPR' ]], on='user_id', how='left')
+#     # print(temp.iloc[:, 0])
+    
+
+
