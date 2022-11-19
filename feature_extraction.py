@@ -189,16 +189,13 @@ def max_num_reviews(table):
     table = pd.merge(table, res, on='user_id', how='left')
     return table['MNR']
 
-# def percent_pos_reviews(table):
-#     # temp = table['user_id']
+def percent_pos_reviews(table):
+    totals = table[['user_id', 'rating']].groupby(['user_id']).agg(total=pd.NamedAgg(column='rating', aggfunc='count'))
+    pos = table[table['rating'] >= 4].groupby(['user_id']).agg(pos=pd.NamedAgg(column='rating', aggfunc='count'))
+    table = pd.merge(table, pd.merge(totals,pos,on='user_id', how='left').fillna(0), on="user_id", how='left')
+    table['PPR'] = table['pos'] / table['total']
+    return table['PPR']
     
-#     temp = pd.concat([table['user_id'], table['rating'] >= 4], axis=1)
-#     print(temp['rating'])
-#     temp2 = temp.groupby(['user_id', 'rating']).size().unstack().fillna(0)
-#     print(temp2)
-#     # temp['PPR'] = temp[True] / (temp[True] + temp[False])
-#     # table = pd.merge(table, temp[['user_id', 'PPR' ]], on='user_id', how='left')
-#     # print(temp.iloc[:, 0])
     
 
 
