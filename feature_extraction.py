@@ -2,13 +2,15 @@ import pandas as pd
 import numpy as np
 import string
 import re
+import collections
 from statistics import mean
 from nltk.tokenize import sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
-import collections
+
 from scipy.stats import entropy
+
 
 def undersample(table):
     """
@@ -26,22 +28,14 @@ def review_metadata(table):
     Metadata features: 
     Rating: rating(1-5) given in review (no calculation needed)
     Singleton: 1 if review is only one written by user on date, 0 otherwise
-    Rating Deviation: |curr_rating - avg_prod_rating| / # of review for product
     """
-    # rating deviation
-    avg_rating = table[['prod_id', 'rating']].groupby(['prod_id']).agg(avg=pd.NamedAgg(column='rating', aggfunc='mean'),
-                                                                       count=pd.NamedAgg(column='rating', aggfunc='count'))
-    table = pd.merge(table, avg_rating, on='prod_id', how='inner')
-    table['rating_deviation'] = abs(
-        table['rating'] - table['avg']) / table['count']
-
     # singleton
     date_counts = table.groupby(['user_id', 'date']).size().to_frame('size')
     table = pd.merge(table, date_counts, on=['user_id', 'date'], how='left')
     table['singleton'] = table['size'] == 1
     table['singleton'] = table['singleton'].astype('int')
 
-    return table[['singleton', 'rating_deviation']]
+    return table[['singleton']]
 
 
 def review_textual(table):
@@ -102,7 +96,7 @@ def reviewer_burst(table):
     Burst features: 
     Density: # reviews for entity on given day
     Mean Rating Deviation(MRD): |avg_prod_rating_on_date - avg_prod_rating|
-    Deviation From Local Mean(DFTLM):  |prod_rating - avg_prod_rating_on_date| / # of reviews on date
+    Deviation From Local Mean(DFTLM):  |prod_rating - avg_prod_rating_on_date|
     """
     # Density
     df1 = table.groupby(['prod_id', 'date'], as_index=False)[
@@ -112,8 +106,7 @@ def reviewer_burst(table):
                      'prod_id', 'date'], validate='m:1')
 
     # Mean Rating Deviation
-    df4 = table.groupby(['prod_id', 'date'], as_index=False).agg(avg_date=pd.NamedAgg(column='rating', aggfunc='mean'),
-                                                                 count_date=pd.NamedAgg(column='rating', aggfunc='count'))
+    df4 = table.groupby(['prod_id', 'date'], as_index=False).agg(avg_date=pd.NamedAgg(column='rating', aggfunc='mean'))
     table = pd.merge(table, df4, left_on=['prod_id', 'date'], right_on=[
                      'prod_id', 'date'], validate='m:1')
 
@@ -122,8 +115,7 @@ def reviewer_burst(table):
         avg=pd.NamedAgg(column='rating', aggfunc=np.mean))
     table = pd.merge(table, df3, left_on=['prod_id'], right_on=[
                      'prod_id'], validate='m:1')
-    table['DFTLM'] = abs(table['rating'] - table['avg_date']
-                         ) / table['count_date']
+    table['DFTLM'] = abs(table['rating'] - table['avg_date'])
     table['MRD'] = abs(table['avg_date'] - table['avg'])
 
     return table[['density', 'MRD', 'DFTLM']]
@@ -184,25 +176,79 @@ def reviewer_textual(table):
     return df[['Maximum_Content_Similarity', 'Average_Content_Similarity', 'Word_number_average']]
 
 
-def max_num_reviews(table):
+def behavioral_features(table):
+    """
+    General behavioral features: 
+    Maximum Number of Reviews (MNR): max number of reviews written by user on any given day
+    Percentage of Positive Reviews (PPR): % of positive reviews(4-5 stars) / total reviews by user
+    Percentage of Negative Reviews (PNR): % of positive reviews(1-2 stars) / total reviews by user
+    Review Length (RL): Avg length of reviews (in words) written by user
+    Rating Deviation: Deviation of review from other reviews on same business (rating - avg_prod_rating)
+    Reviewer Deviation: Avg of rating deviation across all user's reviews
+    """
+    # MNR calculation
     count_table = table[['user_id', 'date', 'rating']].groupby(['user_id', 'date']).agg(count=pd.NamedAgg(column='rating', aggfunc='count'))
     res = count_table.groupby(['user_id']).agg(MNR=pd.NamedAgg(column='count', aggfunc='max'))
     table = pd.merge(table, res, on='user_id', how='left')
-    return table['MNR']
 
 
 
 
 # def percent_pos_reviews(table):
 #     # temp = table['user_id']
+
+    # PPR calculation
+    totals = table[['user_id', 'rating']].groupby(['user_id']).agg(total=pd.NamedAgg(column='rating', aggfunc='count'))
+    pos = table[table['rating'] >= 4].groupby(['user_id']).agg(pos=pd.NamedAgg(column='rating', aggfunc='count'))
+    neg = table[table['rating'] <= 2].groupby(['user_id']).agg(neg=pd.NamedAgg(column='rating', aggfunc='count'))
+    table = pd.merge(table, pd.merge(totals,pos,on='user_id', how='left').fillna(0), on="user_id", how='left')
+    table = pd.merge(table, neg, on="user_id", how='left').fillna(0)
+    table['PPR'] = table['pos'] / table['total']
+    table['PNR'] = table['neg'] / table['total']
+
+    # RL calculation
+    len_table = table[['user_id', 'review']]
+    len_table['length'] = len_table['review'].str.split(" ").str.len()
+    temp = len_table[['user_id', 'length']].groupby(['user_id']).agg(RL=pd.NamedAgg(column='length', aggfunc='mean'))
+    table = pd.merge(table, temp, on="user_id", how='left')
+
+    # Rating Deviation calculation
+    avg_rating = table[['prod_id', 'rating']].groupby(['prod_id']).agg(avg=pd.NamedAgg(column='rating', aggfunc='mean'))
+    table = pd.merge(table, avg_rating, on='prod_id', how='inner')
+    table['rating_dev'] = abs(table['rating'] - table['avg'])
+
+    # Reviewer Deviation calculation
+    temp = table[['user_id', 'rating_dev']].groupby(['user_id']).agg(reviewer_dev=pd.NamedAgg(column='rating_dev', aggfunc='mean'))
+    table = pd.merge(table, temp, on='user_id', how='left')
+
+    return table[['MNR', 'PPR','PNR', 'RL', 'rating_dev', 'reviewer_dev']]
+
+def rating_features(table):
+    """
+    Rating entropy , 
+    i.e., the entropy of rating distribution of user's reviews;
+    """
+    rating_features = table[["user_id", "rating"]]
+    grouped_users = rating_features.groupby('user_id')
+    user_rating_entropy = collections.defaultdict(int)
+
+    for name, group in grouped_users:
+        rating_peruser = list(group["rating"])
+        user_rating_entropy[name] = entropy(rating_peruser)
+
+    temp = pd.DataFrame.from_dict(user_rating_entropy, orient='index', columns=['rating_entropy'])
+    temp.reset_index(inplace=True)
+    temp = temp.rename(columns = {'index':'user_id'})
+
+    table = pd.merge(table, temp, on='user_id', how='left')
+    return table[['rating_entropy']]
+
     
-#     temp = pd.concat([table['user_id'], table['rating'] >= 4], axis=1)
-#     print(temp['rating'])
-#     temp2 = temp.groupby(['user_id', 'rating']).size().unstack().fillna(0)
-#     print(temp2)
-#     # temp['PPR'] = temp[True] / (temp[True] + temp[False])
-#     # table = pd.merge(table, temp[['user_id', 'PPR' ]], on='user_id', how='left')
-#     # print(temp.iloc[:, 0])
+
+
+
+
+    
     
 
 

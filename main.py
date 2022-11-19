@@ -22,7 +22,7 @@ def main():
     # combines original sample dataframe with feature columns
     # TO ADD FEATURE: create new function in feature_extraction.py that returns Series/Dataframe object,
     #                add method call to pd.concat function
-    table = pd.concat([table, review_metadata(table), review_textual(table), reviewer_burst(table), max_num_reviews(table)], axis=1)
+    table=pd.concat([table, review_metadata(table), review_textual(table), reviewer_burst(table), behavioral_features(table), rating_features(table)], axis=1)
     
 
     # prints first 10 rows to check
