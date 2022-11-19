@@ -44,15 +44,14 @@ i.e., the entropy of rating distribution of user's reviews;
 """
 user_rating_entropy = collections.defaultdict(int)
 
-# for name, group in grouped_users:
-#     rating_peruser = list(group["rating"])
-#     user_rating_entropy[name] = entropy(rating_peruser)
+for name, group in grouped_users:
+    rating_peruser = list(group["rating"])
+    user_rating_entropy[name] = entropy(rating_peruser)
 # search for user id and add the entropy value to the original table
 """
 Rating variance , i.e., the squared deviation of the rating assigned by a user with respect to the ratings mean. 
 The variance as a rating feature has been added to further describe how the ratings for a particular user are distributed.
 """
 avg_rating_of_users = rating_features.groupby('user_id').mean()
-print(avg_rating_of_users)
 # simply subtract the rating for each row in the original table
 
