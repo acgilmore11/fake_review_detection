@@ -8,7 +8,6 @@ from nltk.tokenize import sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
-
 from scipy.stats import entropy
 
 
@@ -191,12 +190,6 @@ def behavioral_features(table):
     res = count_table.groupby(['user_id']).agg(MNR=pd.NamedAgg(column='count', aggfunc='max'))
     table = pd.merge(table, res, on='user_id', how='left')
 
-
-
-
-# def percent_pos_reviews(table):
-#     # temp = table['user_id']
-
     # PPR calculation
     totals = table[['user_id', 'rating']].groupby(['user_id']).agg(total=pd.NamedAgg(column='rating', aggfunc='count'))
     pos = table[table['rating'] >= 4].groupby(['user_id']).agg(pos=pd.NamedAgg(column='rating', aggfunc='count'))
@@ -242,13 +235,3 @@ def rating_features(table):
 
     table = pd.merge(table, temp, on='user_id', how='left')
     return table[['rating_entropy']]
-
-    
-
-
-
-
-    
-    
-
-
