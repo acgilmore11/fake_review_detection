@@ -2,11 +2,13 @@ import pandas as pd
 import numpy as np
 import string
 import re
+import collections
 from statistics import mean
 from nltk.tokenize import sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
+from scipy.stats import entropy
 
 
 def undersample(table):
@@ -178,6 +180,7 @@ def behavioral_features(table):
     General behavioral features: 
     Maximum Number of Reviews (MNR): max number of reviews written by user on any given day
     Percentage of Positive Reviews (PPR): % of positive reviews(4-5 stars) / total reviews by user
+    Percentage of Negative Reviews (PNR): % of positive reviews(1-2 stars) / total reviews by user
     Review Length (RL): Avg length of reviews (in words) written by user
     Rating Deviation: Deviation of review from other reviews on same business (rating - avg_prod_rating)
     Reviewer Deviation: Avg of rating deviation across all user's reviews
@@ -190,8 +193,11 @@ def behavioral_features(table):
     # PPR calculation
     totals = table[['user_id', 'rating']].groupby(['user_id']).agg(total=pd.NamedAgg(column='rating', aggfunc='count'))
     pos = table[table['rating'] >= 4].groupby(['user_id']).agg(pos=pd.NamedAgg(column='rating', aggfunc='count'))
+    neg = table[table['rating'] <= 2].groupby(['user_id']).agg(neg=pd.NamedAgg(column='rating', aggfunc='count'))
     table = pd.merge(table, pd.merge(totals,pos,on='user_id', how='left').fillna(0), on="user_id", how='left')
+    table = pd.merge(table, neg, on="user_id", how='left').fillna(0)
     table['PPR'] = table['pos'] / table['total']
+    table['PNR'] = table['neg'] / table['total']
 
     # RL calculation
     len_table = table[['user_id', 'review']]
@@ -208,7 +214,27 @@ def behavioral_features(table):
     temp = table[['user_id', 'rating_dev']].groupby(['user_id']).agg(reviewer_dev=pd.NamedAgg(column='rating_dev', aggfunc='mean'))
     table = pd.merge(table, temp, on='user_id', how='left')
 
-    return table[['MNR', 'PPR', 'RL', 'rating_dev', 'reviewer_dev']]
+    return table[['MNR', 'PPR','PNR', 'RL', 'rating_dev', 'reviewer_dev']]
+
+def rating_features(table):
+    """
+    Rating entropy , 
+    i.e., the entropy of rating distribution of user's reviews;
+    """
+    rating_features = table[["user_id", "rating"]]
+    grouped_users = rating_features.groupby('user_id')
+    user_rating_entropy = collections.defaultdict(int)
+
+    for name, group in grouped_users:
+        rating_peruser = list(group["rating"])
+        user_rating_entropy[name] = entropy(rating_peruser)
+
+    temp = pd.DataFrame.from_dict(user_rating_entropy, orient='index', columns=['rating_entropy'])
+    temp.reset_index(inplace=True)
+    temp = temp.rename(columns = {'index':'user_id'})
+
+    table = pd.merge(table, temp, on='user_id', how='left')
+    return table[['rating_entropy']]
 
     
 
