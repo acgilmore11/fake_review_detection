@@ -268,7 +268,6 @@ def rating_features(table):
     """
     avg_rating_of_users = rating_features.groupby('user_id').mean()
     # simply subtract the rating for each row in the original table
-    cols_reviewer_rating = ["positive", "negative", "extreme_positive", "extreme_negative","rating_variance","rating_entropy", "avg_dev_from_entity_avg"]
     rating_features_output = collections.defaultdict(list)
     for index, row in table.iterrows():
         # ratio calculation 
