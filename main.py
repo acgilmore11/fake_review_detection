@@ -23,10 +23,13 @@ def main():
     # TO ADD FEATURE: create new function in feature_extraction.py that returns Series/Dataframe object,
     #                add method call to pd.concat function
     table=pd.concat([table, review_metadata(table), review_textual(table), reviewer_burst(table), behavioral_features(table), rating_features(table)], axis=1)
-    
+    # if we want to do under sampling after feature engineering 
+    # just uncomment the following line
+    # table = undersample_v2(table)
+    np.save("BalancedData.npy", table)
 
     # prints first 10 rows to check
-    print(table.head(50))
+    print(table[:100])
 
 
 if __name__ == "__main__":
