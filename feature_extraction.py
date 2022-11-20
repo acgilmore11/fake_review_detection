@@ -9,7 +9,17 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
 from scipy.stats import entropy
+from imblearn.under_sampling import NearMiss
+from sklearn.preprocessing import Normalizer
 
+def undersample_v2(table):
+    labels = table["label"]
+    features = table.drop(['user_id', 'prod_id', "label", "date", "review"], axis=1)
+    scaler = Normalizer().fit(features)
+    normalized_features = scaler.transform(features)
+    undersample = NearMiss(version=3, n_neighbors_ver3=3)
+    features, labels = undersample.fit_resample(normalized_features, labels)
+    return features, labels
 
 def undersample(table):
     """
@@ -268,7 +278,6 @@ def rating_features(table):
     """
     avg_rating_of_users = rating_features.groupby('user_id').mean()
     # simply subtract the rating for each row in the original table
-    cols_reviewer_rating = ["positive", "negative", "extreme_positive", "extreme_negative","rating_variance","rating_entropy", "avg_dev_from_entity_avg"]
     rating_features_output = collections.defaultdict(list)
     for index, row in table.iterrows():
         # ratio calculation 
