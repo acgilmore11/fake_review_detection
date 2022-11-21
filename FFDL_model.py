@@ -30,7 +30,11 @@ class YelpDataset(Dataset):
                  mode='train',):
         self.mode = mode
         # Read data into numpy arrays
-        # labels = np.array([0 if label == -1 else label for label in labels ])
+        """
+        originally label = -1 is fake review and label = 1 is real review
+        for training purpose I make fake reviews as label 1 and real reviews as label 0
+        """
+        labels = np.array([1 if label == -1 else 0 for label in labels ])
         labels = np.array(labels)
         print("labels", labels)
         data = np.array(features).astype(float)
@@ -248,21 +252,23 @@ config = {
     'early_stop': 500,               # early stopping epochs (the number epochs since your model's last improvement)
     'save_path': 'models/model.pth'  # your model will be saved here
 }
+# by simply switching the data and feature_ids from feature selection
+# we can run the deep learning model
 reviewer_graph_cols = ["user_id", "prod_id", "rating", "label", "date"]
 data_path = "YelpCSV"
 data = pd.read_csv(
         data_path+"/metadata.csv", names=reviewer_graph_cols).dropna()
-# print(data)
+# remember to drop useless columns 
 data = data.drop(["user_id", "date"], axis=1).sample(n=100)
 label = data["label"]
 data = data.drop(["label"], axis = 1)
-print(data)
+
 X_train, X_test, y_train, y_test = train_test_split(data, label, test_size=0.3, random_state=42)
 feature_ids = [0,1]
 tr_set = prep_dataloader('train', config['batch_size'], X_train, y_train, feature_ids)
 dv_set = prep_dataloader('dev', config['batch_size'], X_train, y_train, feature_ids)
 tt_set = prep_dataloader('test', config['batch_size'], X_test, y_test, feature_ids)
-print(tr_set.dataset.dim)
+
 
 model = NeuralNet(tr_set.dataset.dim).to(device)  # Construct model and move to device
 model_loss, model_loss_record = train(tr_set, dv_set, model, config, device)
@@ -277,5 +283,5 @@ def save_pred(preds, file):
         for i, p in enumerate(preds):
             writer.writerow([i, p])
 save_path = ""#"/content/drive/My Drive/CSE573.../"
-preds = test(tt_set, model, device)  
+preds = np.around(test(tt_set, model, device))
 save_pred(preds, save_path + 'pred.csv')         # save prediction file to pred.csv
