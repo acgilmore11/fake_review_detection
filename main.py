@@ -26,7 +26,14 @@ def main():
     # if we want to do under sampling after feature engineering 
     # just uncomment the following line
     # table = undersample_v2(table)
-    np.save("BalancedData.npy", table)
+    
+    # random forest and feature selection
+
+
+    # SVM and feature selection
+    
+
+    # deep learning approach with selected features
 
     # prints first 10 rows to check
     print(table[:100])
