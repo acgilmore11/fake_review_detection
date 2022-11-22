@@ -15,11 +15,13 @@ from sklearn.preprocessing import Normalizer
 def undersample_v2(table):
     labels = table["label"]
     features = table.drop(['user_id', 'prod_id', "label", "date", "review"], axis=1)
+    feature_names = list(features.columns)
     scaler = Normalizer().fit(features)
     normalized_features = scaler.transform(features)
     undersample = NearMiss(version=3, n_neighbors_ver3=3)
     features, labels = undersample.fit_resample(normalized_features, labels)
-    return features, labels
+    labels = np.array([1 if label == -1 else 0 for label in labels ])
+    return features, labels, feature_names
 
 def undersample(table):
     """
@@ -30,17 +32,6 @@ def undersample(table):
     real_reviews = table[table['label'] == 1].sample(n=fake_reviews.shape[0])
     sample = pd.concat([fake_reviews, real_reviews], ignore_index=True)
     return sample
-
-def undersample_test(table):
-    """
-    Performs undersampling on data by keeping fake reviews and obtaining random sample
-    of real reviews such that # of each class (real and fake) are equal
-    """
-    fake_reviews = table[table['label'] == -1].sample(n=100)
-    real_reviews = table[table['label'] == 1].sample(n=100)
-    sample = pd.concat([fake_reviews, real_reviews], ignore_index=True)
-    return sample
-
 
 def review_metadata(table):
     """
@@ -239,32 +230,6 @@ def behavioral_features(table):
 def rating_features(table):
     rating_features = table[["user_id", "rating"]]
     """
-    Ratios , i.e., the ratio of negative, positive, and extreme reviews 
-    (i.e., whose rating corresponds to the extremes of the considered rating interval);
-    """
-    # filter 
-    user_ids = rating_features['rating'].unique().tolist()
-    numer_of_reviews_of_each_user = rating_features['user_id'].value_counts()
-    # get rating > =3
-    positive_rating = rating_features[rating_features['rating'] >=3]
-    positive_counts = positive_rating['user_id'].value_counts()
-    positive_users = set(positive_rating["user_id"].unique().tolist())
-
-    # get rating < 3
-    negative_rating = rating_features[rating_features['rating'] < 3]
-    negative_counts = negative_rating['user_id'].value_counts()
-    negative_users = set(negative_rating["user_id"].unique().tolist())
-    # get rating == 1
-    extreme_negative_rating = rating_features[rating_features['rating'] == 1]
-    extreme_negative_counts = extreme_negative_rating['user_id'].value_counts()
-    extreme_negative_users = set(extreme_negative_rating["user_id"].unique().tolist())
-    # get rating == 5
-    extreme_positive_rating = rating_features[rating_features['rating'] == 5]
-    extreme_positive_counts = extreme_positive_rating['user_id'].value_counts()
-    extreme_positive_users = set(extreme_positive_rating["user_id"].unique().tolist())
-    # simply iterate through the original dataframe to add values
-
-    """
     Average deviation from entity's average, 
     i.e., the evaluation if a user's ratings assigned in her/his reviews are 
     often very different from the mean of an entity's rating(far lower for instance);
@@ -292,27 +257,6 @@ def rating_features(table):
     for index, row in table.iterrows():
         # ratio calculation 
         user_id = row["user_id"]
-        # total_num_review = numer_of_reviews_of_each_user.loc[user_id]
-        # if user_id in positive_users:
-            
-        #     rating_features_output["positive"].append(positive_counts.loc[user_id]/total_num_review)
-        # else:
-        #     rating_features_output["positive"].append(0)
-
-        # if user_id in negative_users:
-        #     rating_features_output["negative"].append(negative_counts.loc[user_id]/total_num_review)
-        # else:
-        #     rating_features_output["negative"].append(0)
-
-        # if user_id in extreme_positive_users:
-        #     rating_features_output["extreme_positive"].append(extreme_positive_counts.loc[user_id]/total_num_review)
-        # else:
-        #     rating_features_output["extreme_positive"].append(0)
-
-        # if user_id in extreme_negative_users:
-        #     rating_features_output["extreme_negative"].append(extreme_negative_counts.loc[user_id]/total_num_review)
-        # else:
-        #     rating_features_output["extreme_negative"].append(0)
 
         # rating variance 
         rating_features_output["rating_variance"].append((row["rating"] - avg_rating_of_users.loc[user_id]["rating"])**2)
