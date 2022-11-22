@@ -31,6 +31,16 @@ def undersample(table):
     sample = pd.concat([fake_reviews, real_reviews], ignore_index=True)
     return sample
 
+def undersample_test(table):
+    """
+    Performs undersampling on data by keeping fake reviews and obtaining random sample
+    of real reviews such that # of each class (real and fake) are equal
+    """
+    fake_reviews = table[table['label'] == -1].sample(n=100)
+    real_reviews = table[table['label'] == 1].sample(n=100)
+    sample = pd.concat([fake_reviews, real_reviews], ignore_index=True)
+    return sample
+
 
 def review_metadata(table):
     """
@@ -282,27 +292,27 @@ def rating_features(table):
     for index, row in table.iterrows():
         # ratio calculation 
         user_id = row["user_id"]
-        total_num_review = numer_of_reviews_of_each_user.loc[user_id]
-        if user_id in positive_users:
+        # total_num_review = numer_of_reviews_of_each_user.loc[user_id]
+        # if user_id in positive_users:
             
-            rating_features_output["positive"].append(positive_counts.loc[user_id]/total_num_review)
-        else:
-            rating_features_output["positive"].append(0)
+        #     rating_features_output["positive"].append(positive_counts.loc[user_id]/total_num_review)
+        # else:
+        #     rating_features_output["positive"].append(0)
 
-        if user_id in negative_users:
-            rating_features_output["negative"].append(negative_counts.loc[user_id]/total_num_review)
-        else:
-            rating_features_output["negative"].append(0)
+        # if user_id in negative_users:
+        #     rating_features_output["negative"].append(negative_counts.loc[user_id]/total_num_review)
+        # else:
+        #     rating_features_output["negative"].append(0)
 
-        if user_id in extreme_positive_users:
-            rating_features_output["extreme_positive"].append(extreme_positive_counts.loc[user_id]/total_num_review)
-        else:
-            rating_features_output["extreme_positive"].append(0)
+        # if user_id in extreme_positive_users:
+        #     rating_features_output["extreme_positive"].append(extreme_positive_counts.loc[user_id]/total_num_review)
+        # else:
+        #     rating_features_output["extreme_positive"].append(0)
 
-        if user_id in extreme_negative_users:
-            rating_features_output["extreme_negative"].append(extreme_negative_counts.loc[user_id]/total_num_review)
-        else:
-            rating_features_output["extreme_negative"].append(0)
+        # if user_id in extreme_negative_users:
+        #     rating_features_output["extreme_negative"].append(extreme_negative_counts.loc[user_id]/total_num_review)
+        # else:
+        #     rating_features_output["extreme_negative"].append(0)
 
         # rating variance 
         rating_features_output["rating_variance"].append((row["rating"] - avg_rating_of_users.loc[user_id]["rating"])**2)
