@@ -1,47 +1,43 @@
-import pandas as pd
-import numpy as np
-from feature_extraction import undersample
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
-from sklearn.model_selection import train_test_split
 from sklearn import metrics
-import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.decomposition import PCA
+import pandas as pd
+import numpy as np
+import nltk
+#from feature_extraction import *
+import pandas as pd
+import numpy as np
+import string
+import re
+import collections
+from statistics import mean
+from nltk.tokenize import sent_tokenize
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import pairwise_distances
+from scipy.stats import entropy
+from imblearn.under_sampling import NearMiss
+from sklearn.preprocessing import Normalizer
 
-def preprocess_rf(table):
-    #dataset = pd.read_csv("test.csv")
-    dataset = undersample(table)
-    labels = np.array(dataset['label'])
-    dataset= dataset.drop('label', axis = 1)
-    dataset= dataset.drop('date', axis = 1)
-    dataset= dataset.drop('review', axis = 1)
+def train_rf(table):
 
-    # Saving feature names for later use
-    feature_list = list(dataset.columns)
-    # Convert to numpy array
-    train = np.array(dataset)
-    train_features, test_features, train_labels, test_labels = train_test_split(dataset, labels, test_size = 0.25, random_state = 42)
-    return [train_features,test_features,train_labels,test_labels]
-
-def pca_rf(train_features,test_features):
-    pca = PCA(n_components=6)
-    pca.fit(train_features)
-    X_train_scaled_pca = pca.transform(train_features)
-    X_test_scaled_pca = pca.transform(test_features)
-    return [ X_train_scaled_pca, X_test_scaled_pca]
-
-def train_rf(train,label,X_train_scaled_pca, train_labels,test_labels):
-    #train, labels = make_classification(n_samples=1000, n_features=4,
-    #                        n_informative=2, n_redundant=0,
-    #                        random_state=0, shuffle=False)
+    labels = np.array(table['label'])
+    table = table.drop('label', axis = 1)
+    scale= StandardScaler()
+    scaled_train = scale.fit_transform(table) 
+    # Split the data into training and testing sets
+    train_features, test_features, train_labels, test_labels = train_test_split(scaled_train, labels, test_size = 0.25, random_state = 42)
     clf = RandomForestClassifier(n_estimators=100)
-    clf.fit(X_train_scaled_pca, train_labels)
-    y_pred=clf.predict(X_test_scaled_pca)
-    from sklearn import metrics
+    clf.fit(train_features, train_labels)
+    y_pred=clf.predict(test_features)
     print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
     joblib.dump(clf, "rf.joblib")
+    return [rating_entropy,RL,MRD,reviewer_dev,rating_variance,avg_dev_from_entity_avg,RatioOfCapW,RationOfCapL,RatioOfFirstPerson,PPR]
 
 def feature_importance(datatset):
     clf = joblib.load("rf.joblib")
@@ -63,21 +59,13 @@ def feature_importance(datatset):
     plt.title('Feature Importance', fontsize=25, weight = 'bold')
     display(plt.show())
     display(importances)
-
-def pca_visualization(train_features):
-    pca_test = PCA(n_components=6)
-    pca_test.fit(train_features)
-    sns.set(style='whitegrid')
-    plt.plot(np.cumsum(pca_test.explained_variance_ratio_))
-    plt.xlabel('number of components')
-    plt.ylabel('cumulative explained variance')
-    plt.axvline(linewidth=4, color='r', linestyle = '--', x=1, ymin=0, ymax=1)
-    display(plt.show())
-    evr = pca_test.explained_variance_ratio_
-    cvr = np.cumsum(pca_test.explained_variance_ratio_)
-    pca_df = pd.DataFrame()
-    pca_df['Cumulative Variance Ratio'] = cvr
-    pca_df['Explained Variance Ratio'] = evr
-    display(pca_df.head(10))
-
-
+    
+def pca_visualization(table):
+    scale= StandardScaler()
+    labels = np.array(table['label'])
+    table = table.drop('label', axis = 1)
+    scaled_train = scale.fit_transform(table)
+    pca = PCA(n_components=2)
+    components = pca.fit_transform(scaled_train)
+    fig = px.scatter(components, x=0, y=1, color=labels)
+    fig.show()
