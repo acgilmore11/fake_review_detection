@@ -130,62 +130,6 @@ def reviewer_burst(table):
 
     return table[['density', 'MRD', 'DFTLM']]
 
-
-#i dont think this is working properly
-def reviewer_temporal(table):
-
-    df=table[['user_id','date']]
-    df['Date_pd'] = pd.to_datetime(df['date'])
-    df['Date_int'] = abs(pd.to_datetime(df['Date_pd']).astype(np.int64))
-
-    df=df[['user_id','Date_int']]
-    res = df.groupby('user_id').agg(['mean','var'])
-    res.columns = ['_'.join(c) for c in res.columns.values]
-    #res['Date_var'] = pd.to_timedelta(res['Date_int_var'])/np.timedelta64(1,'D')
-    res['Date_mean'] = pd.to_datetime(res['Date_int_mean'])
-    res['Date_var'] = pd.to_timedelta(res['Date_int_var'])
-    #res['Date_var']=res['Date_var'].fillna(0).astype(int)
-    # res = res[['Date_mean','Date_var']]
-    print(res)
-
-
-# this function is producing an array memory error, needs to be fixed
-def reviewer_textual(table):
-    df = table[['user_id', 'review']]
-
-    sentences = [sent.lower() for sent in df['review']]
-    processed_sentences = [re.sub('[^a-zA-Z]', ' ', sent)
-                           for sent in sentences]
-    processed_article = [re.sub(r'\s+', ' ', sent)
-                         for sent in processed_sentences]
-
-    df['Word_number_average'] = df['review'].str.split(" ").str.len()
-
-    tfidfvectorizer = TfidfVectorizer(
-        min_df=0, analyzer='word', stop_words='english')
-    tfidf_wm = tfidfvectorizer.fit_transform(processed_article)
-    tfidf_tokens = tfidfvectorizer.get_feature_names_out()
-    #df_tfidfvect = pd.DataFrame(data = tfidf_wm.toarray(),index = df['id'],columns = tfidf_tokens)
-    df_tfidfvect = tfidf_wm.toarray()
-
-    cosine = 1-pairwise_distances(df_tfidfvect, metric='cosine')
-    np.fill_diagonal(cosine, 0)
-
-    max_content_similarity = []
-    for i in range(0, len(cosine)):
-        max_content_similarity.append(round(max(cosine[i]), 3))
-
-    df['Maximum_Content_Similarity'] = max_content_similarity
-
-    avg_content_similarity = []
-    for i in range(0, len(cosine)):
-        avg_content_similarity.append(round(mean(cosine[i]), 3))
-
-    df['Average_Content_Similarity'] = avg_content_similarity
-
-    return df[['Maximum_Content_Similarity', 'Average_Content_Similarity', 'Word_number_average']]
-
-
 def behavioral_features(table):
     """
     General behavioral features: 
@@ -228,6 +172,9 @@ def behavioral_features(table):
     return table[['MNR', 'PPR','PNR', 'RL', 'rating_dev', 'reviewer_dev']]
 
 def rating_features(table):
+    """
+    Rating features:
+    """
     rating_features = table[["user_id", "rating"]]
     """
     Average deviation from entity's average, 
@@ -268,3 +215,50 @@ def rating_features(table):
         rating_features_output["avg_dev_from_entity_avg"].append(avg_rating_of_prods.loc[row["prod_id"]]["rating"])
     rating_features_df = pd.DataFrame.from_dict(rating_features_output)
     return rating_features_df
+
+def temporal(table):
+    """
+    Temporal features:
+    Activity time: Number of days between first and last review of user.
+    Maximum rating per day: Maximum rating provided by user in considered day.
+    Date entropy: Number of days between current review and next review of user.
+    Date variance: |date_of_review - avg_review_date_of_user|^2
+
+    """
+   ## activity time
+    table['date'] = pd.to_datetime(table['date'])
+    temp = table.loc[:, ['user_id', 'date', 'rating']]
+    temp.sort_values(by=['date'], inplace=True)
+    act_time_table = temp[['user_id', 'date']].groupby(['user_id']).agg(first=pd.NamedAgg(column='date', aggfunc='min'),
+                                            last = pd.NamedAgg(column='date', aggfunc='max'))
+    act_time_table['activity_time'] = ((act_time_table['last'] - act_time_table['first']) / np.timedelta64(1, 'D')).astype(int)
+    
+    ## maxium rating per day
+    temp2 = table
+    temp2['date'] = pd.to_datetime(temp2['date'])
+    temp2 = temp2[['user_id', 'date', 'rating']].groupby(['user_id', 'date']).agg(MRPD=pd.NamedAgg(column='rating', aggfunc='max'))
+
+    ## date entropy
+    temp['prev_date'] = temp.groupby('user_id')['date'].shift()
+    temp['date_entropy'] = temp['date'] - temp['prev_date']
+    temp.replace({pd.NaT: '0 day'}, inplace=True)
+    temp['date_entropy'] = (temp['date_entropy'] / np.timedelta64(1, 'D')).astype(int)
+
+    ## date var
+    temp['original_index'] = temp.index
+    temp3 = temp[['user_id', 'date']].groupby(['user_id']).agg(date_mean=pd.NamedAgg(column='date', aggfunc='mean'))
+    temp = pd.merge(temp, temp3, on='user_id', how='left')
+    temp['date_var'] = abs(((temp['date'] - temp['date_mean']) / np.timedelta64(1, 'D')))**2
+    temp.set_index('original_index')
+
+    ## join with original table
+    table = table.loc[:, ['user_id', 'date']]
+    table['date'] = pd.to_datetime(table['date'])
+    table = pd.merge(table, act_time_table, on='user_id', how='left')
+    table = pd.merge(table, temp2, on=['user_id', 'date'], how='left')
+    table = pd.merge(table, temp, left_on=table.index, right_on='original_index')
+    return table[['activity_time', 'MRPD', 'date_entropy', 'date_var']]
+
+   
+
+    
