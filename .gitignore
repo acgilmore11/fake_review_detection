@@ -2,3 +2,5 @@
 /YelpCSV
 /__pycache__
 /.idea
+/*.csv
+/*.ipynb

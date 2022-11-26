@@ -23,24 +23,29 @@ from sklearn.metrics.pairwise import pairwise_distances
 from scipy.stats import entropy
 from imblearn.under_sampling import NearMiss
 from sklearn.preprocessing import Normalizer
+import joblib
 
-def train_rf(table):
+# perform undersampling
 
-    labels = np.array(table['label'])
-    table = table.drop('label', axis = 1)
+def train_rf(train_features, test_features, train_labels, test_labels,table):
+    
+
+    #labels = np.array(table['label'])
+    #table = table.drop('label', axis = 1)
     scale= StandardScaler()
-    scaled_train = scale.fit_transform(table) 
+    scaled_train = scale.fit_transform(train_features) 
     # Split the data into training and testing sets
-    train_features, test_features, train_labels, test_labels = train_test_split(scaled_train, labels, test_size = 0.25, random_state = 42)
+    #train_features, test_features, train_labels, test_labels = train_test_split(scaled_train, labels, test_size = 0.25, random_state = 42)
     clf = RandomForestClassifier(n_estimators=100)
-    clf.fit(train_features, train_labels)
+    clf.fit(scaled_train, train_labels)
     y_pred=clf.predict(test_features)
     print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
     joblib.dump(clf, "rf.joblib")
-    return [rating_entropy,RL,MRD,reviewer_dev,rating_variance,avg_dev_from_entity_avg,RatioOfCapW,RationOfCapL,RatioOfFirstPerson,PPR]
-
-def feature_importance(datatset):
     clf = joblib.load("rf.joblib")
+    return feature_importance(clf,table)
+
+def feature_importance(clf,datatset):
+    
 
     feats = {}
     for feature, importance in zip(datatset.columns, clf.feature_importances_):
@@ -59,6 +64,7 @@ def feature_importance(datatset):
     plt.title('Feature Importance', fontsize=25, weight = 'bold')
     display(plt.show())
     display(importances)
+    return [importances['Features'][i] for i in range(10)]
     
 def pca_visualization(table):
     scale= StandardScaler()
@@ -69,3 +75,4 @@ def pca_visualization(table):
     components = pca.fit_transform(scaled_train)
     fig = px.scatter(components, x=0, y=1, color=labels)
     fig.show()
+    
