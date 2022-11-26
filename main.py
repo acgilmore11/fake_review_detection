@@ -4,6 +4,7 @@ import nltk
 from pathlib import Path 
 from svm_model import *
 from feature_extraction import *
+from Random_Forrest import *
 
 
 def main():
@@ -38,8 +39,9 @@ def main():
     train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size=0.2,random_state=573)
     
     # random forest and feature selection
-    
-
+    # will return names of top 10 features and return accuracy of the model
+    rf_top_features = train_rf(train_features, test_features, train_labels, test_labels,table)
+    print(rf_top_features)
     # SVM and feature selection
     # will return names of top 10 features
     svm_top_features = svm_feature_selection(train_features, train_labels, feature_names)
