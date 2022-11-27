@@ -56,7 +56,7 @@ def main():
 
     # SVM and feature selection
     # will return names of top 10 features
-    svm_top_features = svm_feature_selection(train_features, train_labels, feature_names)
+    svm_top_features = svm_feature_selection(train_features, train_labels, test_features, test_labels, feature_names)
     print(svm_top_features)
     
 

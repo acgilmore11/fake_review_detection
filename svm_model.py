@@ -6,20 +6,27 @@ import matplotlib.pyplot as plt
 from sklearn import svm
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
+from sklearn import metrics
 
 
 
-def svm_feature_selection(features, labels, feature_names):
+def svm_feature_selection(train_features, train_labels, test_features, test_labels, feature_names):
     """
     Trains svm model with inputted features. Visualizes and returns top n coeff feature names
     """
     # check if trained model already exists
     if not os.path.exists('lin_svm_v2.joblib'):
-        train_lin_model(features, labels)
+        train_lin_model(train_features, train_labels)
 
     # uncomment this line to predict classification for test set
     # y_pred = clf.predict(X_test)
     clf = load('lin_svm_v2.joblib')
+
+    test_pred = clf.predict(test_features)
+    print("Accuracy:",metrics.accuracy_score(test_labels, test_pred))
+    print("Precision:",metrics.precision_score(test_labels, test_pred))
+    print("Recall:",metrics.recall_score(test_labels, test_pred))
+
     return feature_selection(clf, feature_names)
 
 
