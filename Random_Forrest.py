@@ -24,7 +24,9 @@ from scipy.stats import entropy
 from imblearn.under_sampling import NearMiss
 from sklearn.preprocessing import Normalizer
 import joblib
-
+from sklearn.metrics import roc_curve, auc
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 # perform undersampling
 
 def train_rf(train_features, test_features, train_labels, test_labels,table):
@@ -36,7 +38,7 @@ def train_rf(train_features, test_features, train_labels, test_labels,table):
     scaled_train = scale.fit_transform(train_features) 
     # Split the data into training and testing sets
     #train_features, test_features, train_labels, test_labels = train_test_split(scaled_train, labels, test_size = 0.25, random_state = 42)
-    clf = RandomForestClassifier(n_estimators=100)
+    clf = RandomForestClassifier(n_estimators=60,max_depth=8)
     clf.fit(scaled_train, train_labels)
     y_pred=clf.predict(test_features)
     print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
@@ -75,4 +77,29 @@ def pca_visualization(table):
     components = pca.fit_transform(scaled_train)
     fig = px.scatter(components, x=0, y=1, color=labels)
     fig.show()
+
+def compare_rf(x_train,y_train,x_test,y_test):
+    n_estimators = [1, 2, 4, 8, 16, 32, 64, 100, 200]
+    max_depths = [1,2,3,4,8,9,10,16,32]
+    train_results = []
+    test_results = []
+    i = 0
+    for estimator in n_estimators:
+        rf = RandomForestClassifier(n_estimators=estimator, max_depth = max_depths[i])
+        i += 1
+        rf.fit(x_train, y_train)
+        train_pred = rf.predict(x_train)
+        false_positive_rate, true_positive_rate, thresholds = roc_curve(y_train, train_pred)
+        roc_auc = auc(false_positive_rate, true_positive_rate)
+        train_results.append(roc_auc)
+        y_pred = rf.predict(x_test)
+        false_positive_rate, true_positive_rate, thresholds = roc_curve(y_test, y_pred)
+        roc_auc = auc(false_positive_rate, true_positive_rate)
+        test_results.append(roc_auc)
+    line1, = plt.plot(n_estimators, train_results, 'b', label= "Train AUC")
+    line2, = plt.plot(n_estimators, test_results, 'r', label= "Test AUC")
+    plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
+    plt.ylabel('AUC score')
+    plt.xlabel('n_estimators')
+    plt.show()
     
