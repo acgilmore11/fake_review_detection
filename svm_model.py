@@ -14,12 +14,12 @@ def svm_feature_selection(features, labels, feature_names):
     Trains svm model with inputted features. Visualizes and returns top n coeff feature names
     """
     # check if trained model already exists
-    if not os.path.exists('lin_svm.joblib'):
+    if not os.path.exists('lin_svm_v2.joblib'):
         train_lin_model(features, labels)
 
     # uncomment this line to predict classification for test set
     # y_pred = clf.predict(X_test)
-    clf = load('lin_svm.joblib')
+    clf = load('lin_svm_v2.joblib')
     return feature_selection(clf, feature_names)
 
 
@@ -28,7 +28,7 @@ def train_lin_model(features, labels):
     clf.fit(features, labels)
 
     # save svm model
-    dump(clf, 'lin_svm.joblib')
+    dump(clf, 'lin_svm_v2.joblib')
 
 def feature_selection(classifier, feature_names, n=10):
     coef = classifier.coef_.ravel()
