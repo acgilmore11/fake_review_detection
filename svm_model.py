@@ -35,6 +35,7 @@ def feature_selection(classifier, feature_names, n=10):
     
     #get top 5 positive and negative coefficients
     top_coefficients = np.hstack([np.argsort(coef)[-int(n/2):], np.argsort(coef)[:int(n/2)]])
+    print(top_coefficients)
 
     # create plot
     plt.figure(figsize=(15, 5))
