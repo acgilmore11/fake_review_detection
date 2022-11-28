@@ -93,7 +93,7 @@ def get_device():
     ''' Get device (if GPU is available, use GPU) '''
     return 'cuda' if torch.cuda.is_available() else 'cpu'
 
-def plot_learning_curve(loss_record, title=''):
+def plot_learning_curve(loss_record, title='', type=''):
     ''' Plot learning curve of your DNN (train & dev loss) '''
     total_steps = len(loss_record['train'])
     x_1 = range(total_steps)
@@ -106,7 +106,7 @@ def plot_learning_curve(loss_record, title=''):
     plt.ylabel('MSE loss')
     plt.title('Learning curve of {}'.format(title))
     plt.legend()
-    plt.savefig("./EVALUATIONS/loss.png")
+    plt.savefig(f"./EVALUATIONS/loss_{type}.png")
     plt.show()
     
 
@@ -272,7 +272,7 @@ def run_DL(data, label, feature_ids, top2_features, n_epoches = 2, batch_size = 
     model = NeuralNet(tr_set.dataset.dim).to(device)  # Construct model and move to device
     model_loss, model_loss_record = train(tr_set, dv_set, model, config, device)
    
-    plot_learning_curve(model_loss_record, title='deep model')
+    plot_learning_curve(model_loss_record, title='deep model', type=type)
     preds = np.around(test(tt_set, model, device))
     # plot top 2 feature space
     cdict = {0: 'red', 1: 'blue'}
@@ -284,7 +284,7 @@ def run_DL(data, label, feature_ids, top2_features, n_epoches = 2, batch_size = 
     plt.xlabel(top1)
     plt.ylabel(top2)
     plt.legend(loc="upper left")
-    plt.savefig('./EVALUATIONS/visulaization.png')
+    plt.savefig(f'./EVALUATIONS/visulaization_{type}.png')
     save_path = ""
     save_pred(preds, save_path + 'pred.csv')
     evaluate(y_test, preds, type)
