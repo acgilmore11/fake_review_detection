@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 import pdb
 from sklearn import metrics
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score 
+from feature_extraction import *
 
 myseed = 42069  # set a random seed for reproducibility
 torch.backends.cudnn.deterministic = True
@@ -241,7 +242,7 @@ def test(tt_set, model, device):
     preds = torch.cat(preds, dim=0).numpy()     # concatenate all predictions and convert to a numpy array
     return preds
     
-def run_DL(data, label, feature_ids, top2_features, n_epoches = 2, batch_size = 10):
+def run_DL(data, label, feature_ids, top2_features, n_epoches = 2, batch_size = 10, type=''):
     device = get_device()                 # get the current available device ('cpu' or 'cuda')
     os.makedirs('models', exist_ok=True)  # The trained model will be saved to ./models/
     target_only = True                   # TODO: Using 40 states & 2 tested_positive features
@@ -285,7 +286,7 @@ def run_DL(data, label, feature_ids, top2_features, n_epoches = 2, batch_size = 
     plt.savefig('visulaization.png')
     save_path = ""
     save_pred(preds, save_path + 'pred.csv')
-    evaluate(y_test, preds)
+    evaluate(y_test, preds, type)
     
 def save_pred(preds, file):
     ''' Save predictions to specified file '''
@@ -296,14 +297,14 @@ def save_pred(preds, file):
         for i, p in enumerate(preds):
             writer.writerow([i, p])
 
-def evaluate(test_labels,y_pred):
-    tn, fp, fn, tp = confusion_matrix(test_labels, y_pred).ravel()
-    acc = accuracy_score(test_labels, y_pred)
-    precision = precision_score(test_labels, y_pred)
-    sensitivity = recall_score(test_labels, y_pred)
-    specificity = tn/(tn+fp)
-    metrics_val = [acc, precision, sensitivity, specificity]
-    metrics = pd.DataFrame()
-    metrics["metic_type"] = ['Accuracy', 'Precision', 'Sensitivity', 'Specificity']
-    metrics["value"] = metrics_val
-    metrics.to_csv("Metrics.csv", header=False, index=False)
+# def evaluate(test_labels,y_pred):
+#     tn, fp, fn, tp = confusion_matrix(test_labels, y_pred).ravel()
+#     acc = accuracy_score(test_labels, y_pred)
+#     precision = precision_score(test_labels, y_pred)
+#     sensitivity = recall_score(test_labels, y_pred)
+#     specificity = tn/(tn+fp)
+#     metrics_val = [acc, precision, sensitivity, specificity]
+#     metrics = pd.DataFrame()
+#     metrics["metic_type"] = ['Accuracy', 'Precision', 'Sensitivity', 'Specificity']
+#     metrics["value"] = metrics_val
+#     metrics.to_csv("Metrics.csv", header=False, index=False)

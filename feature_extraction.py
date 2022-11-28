@@ -11,6 +11,7 @@ from sklearn.metrics.pairwise import pairwise_distances
 from scipy.stats import entropy
 from imblearn.under_sampling import NearMiss
 from sklearn.preprocessing import Normalizer
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
 
 def undersample_v2(table):
     labels = table["label"]
@@ -45,7 +46,17 @@ def pre_process(table):
     labels = np.array([1 if label == -1 else 0 for label in labels ])
     return features, labels, feature_names
 
-
+def evaluate(test_labels,y_pred, type):
+    tn, fp, fn, tp = confusion_matrix(test_labels, y_pred).ravel()
+    acc = accuracy_score(test_labels, y_pred)
+    precision = precision_score(test_labels, y_pred)
+    recall = recall_score(test_labels, y_pred)
+    specificity = tn/(tn+fp)
+    metrics_val = [acc, precision, recall, specificity]
+    metrics = pd.DataFrame()
+    metrics["metric_type"] = ['Accuracy', 'Precision', 'Recall', 'Specificity']
+    metrics["value"] = metrics_val
+    metrics.to_csv(f"Metrics_{type}.csv", header=False, index=False)
 
 def review_metadata(table):
     """

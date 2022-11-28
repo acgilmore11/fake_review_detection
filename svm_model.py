@@ -7,10 +7,11 @@ from sklearn import svm
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
+from feature_extraction import *
 
 
 
-def svm_feature_selection(train_features, train_labels, test_features, test_labels, feature_names):
+def svm_feature_selection(train_features, train_labels, test_features, test_labels, feature_names, type=""):
     """
     Trains svm model with inputted features. Visualizes and returns top n coeff feature names
     """
@@ -23,9 +24,7 @@ def svm_feature_selection(train_features, train_labels, test_features, test_labe
     clf = load('lin_svm_v2.joblib')
 
     test_pred = clf.predict(test_features)
-    print("Accuracy:",metrics.accuracy_score(test_labels, test_pred))
-    print("Precision:",metrics.precision_score(test_labels, test_pred))
-    print("Recall:",metrics.recall_score(test_labels, test_pred))
+    evaluate(test_labels, test_pred, type)
 
     return feature_selection(clf, feature_names)
 

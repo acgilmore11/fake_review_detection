@@ -55,13 +55,13 @@ def main():
     # will return accuracy score plot for different parameters
     compare_rf(train_features,train_labels,test_features,test_labels)
     # # will return names of top 10 features and return accuracy of the model
-    rf_top_features = train_rf(train_features, test_features, train_labels, test_labels,feature_names)
+    rf_top_features = train_rf(train_features, test_features, train_labels, test_labels,feature_names, type="rf")
     print(rf_top_features)
     pca_visualization(train_features,train_labels)
 
     # SVM and feature selection
     # will return names of top 10 features
-    svm_top_features = svm_feature_selection(train_features, train_labels, test_features, test_labels, feature_names)
+    svm_top_features = svm_feature_selection(train_features, train_labels, test_features, test_labels, feature_names, type="lin_svm")
     print(svm_top_features)
     
 
@@ -75,11 +75,11 @@ def main():
     top2_rf = rf_top_features[:2]
     top2_svm = svm_top_features[:2]
     print("trainin DL model with all features")
-    run_DL(features, labels, feature_id, top2_rf , n_epoches = 100, batch_size = 256)
+    run_DL(features, labels, feature_id, top2_rf , n_epoches = 100, batch_size = 256, type="DL_all")
     print("trainin DL model with selected features by RF features")
-    run_DL(rf_features, labels, feature_id, top2_rf , n_epoches = 100, batch_size = 256)
+    run_DL(rf_features, labels, feature_id, top2_rf , n_epoches = 100, batch_size = 256, type="DL_rf")
     print("trainin DL model with selected features by SVM features")
-    run_DL(svm_features, labels, feature_id, top2_svm , n_epoches = 100, batch_size = 256)
+    run_DL(svm_features, labels, feature_id, top2_svm , n_epoches = 100, batch_size = 256, type="DL_svm")
 
 
 if __name__ == "__main__":

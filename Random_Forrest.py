@@ -30,11 +30,12 @@ import matplotlib.pyplot as plt
 from matplotlib.legend_handler import HandlerLine2D
 import plotly.express as px
 import os.path
+from feature_extraction import *
 
 
 # perform undersampling
 
-def train_rf(train_features, test_features, train_labels, test_labels,feature_names):
+def train_rf(train_features, test_features, train_labels, test_labels,feature_names, type=""):
     
 
     #labels = np.array(table['label'])
@@ -49,9 +50,7 @@ def train_rf(train_features, test_features, train_labels, test_labels,feature_na
         joblib.dump(clf, "rf_v1.joblib")
     clf = joblib.load('rf_v1.joblib')    
     y_pred=clf.predict(test_features)
-    print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
-    print("Precision:",metrics.precision_score(test_labels, y_pred))
-    print("Recall:",metrics.recall_score(test_labels, y_pred))
+    evaluate(test_labels, y_pred, type)
     #print(classification_report(test_labels, y_pred))
 
     return feature_importance(clf,feature_names)

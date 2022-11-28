@@ -2,5 +2,6 @@
 /YelpCSV
 /__pycache__
 /.idea
-/*.csv
+/review_feature_table.csv
+/dataset_v1.csv
 /*.ipynb
