@@ -50,6 +50,7 @@ def feature_selection(classifier, feature_names, n=10):
     feature_names = np.array(feature_names)
     plt.xticks(np.arange(0, n), feature_names[top_coefficients], rotation=60, ha='right')
     plt.ylabel("Importance")
+    plt.tight_layout()
     plt.savefig('./EVALUATIONS/SVM_feature_importance.png')
     plt.show()
     
