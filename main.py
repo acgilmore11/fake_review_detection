@@ -50,6 +50,14 @@ def main():
     train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size=0.2,random_state=573)
     
     # random forest and feature selection
+    # # random forest and feature selection
+    
+    # will return accuracy score plot for different parameters
+    compare_rf(train_features,train_labels,test_features,test_labels)
+    # # will return names of top 10 features and return accuracy of the model
+    rf_top_features = train_rf(train_features, test_features, train_labels, test_labels,feature_names)
+    print(rf_top_features)
+    pca_visualization(train_features,train_labels)
     # will return names of top 10 features and return accuracy of the model
     rf_top_features = train_rf(train_features, test_features, train_labels, test_labels,table)
     print(rf_top_features)

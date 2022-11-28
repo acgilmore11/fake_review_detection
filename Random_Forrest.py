@@ -27,24 +27,31 @@ import joblib
 from sklearn.metrics import roc_curve, auc
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.legend_handler import HandlerLine2D
+import plotly.express as px
+
+
 # perform undersampling
 
-def train_rf(train_features, test_features, train_labels, test_labels,table):
+def train_rf(train_features, test_features, train_labels, test_labels,feature_names):
     
 
     #labels = np.array(table['label'])
     #table = table.drop('label', axis = 1)
-    scale= StandardScaler()
-    scaled_train = scale.fit_transform(train_features) 
+    #scale= StandardScaler()
+    #scaled_train = scale.fit_transform(train_features) 
     # Split the data into training and testing sets
     #train_features, test_features, train_labels, test_labels = train_test_split(scaled_train, labels, test_size = 0.25, random_state = 42)
-    clf = RandomForestClassifier(n_estimators=60,max_depth=8)
-    clf.fit(scaled_train, train_labels)
+    clf = RandomForestClassifier(n_estimators=64,max_depth=10)
+    clf.fit(train_features, train_labels)
     y_pred=clf.predict(test_features)
     print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+    print("Precision:",metrics.precision_score(test_labels, y_pred))
+    print("Recall:",metrics.recall_score(test_labels, y_pred))
+    #print(classification_report(test_labels, y_pred))
     joblib.dump(clf, "rf.joblib")
     clf = joblib.load("rf.joblib")
-    return feature_importance(clf,table)
+    return feature_importance(clf,feature_names)
 
 def feature_importance(clf,datatset):
     
@@ -68,13 +75,9 @@ def feature_importance(clf,datatset):
     display(importances)
     return [importances['Features'][i] for i in range(10)]
     
-def pca_visualization(table):
-    scale= StandardScaler()
-    labels = np.array(table['label'])
-    table = table.drop('label', axis = 1)
-    scaled_train = scale.fit_transform(table)
+def pca_visualization(train_features,labels):
     pca = PCA(n_components=2)
-    components = pca.fit_transform(scaled_train)
+    components = pca.fit_transform(train_features)
     fig = px.scatter(components, x=0, y=1, color=labels)
     fig.show()
 
