@@ -75,7 +75,7 @@ def main():
     top2_rf = rf_top_features[:2]
     top2_svm = svm_top_features[:2]
     print("trainin DL model with all features")
-    run_DL(features, labels, feature_id, top2_rf , n_epoches = 100, batch_size = 256, type="DL_all")
+    run_DL(features_df, labels, feature_id, top2_rf , n_epoches = 100, batch_size = 256, type="DL_all")
     print("trainin DL model with selected features by RF features")
     run_DL(rf_features, labels, feature_id, top2_rf , n_epoches = 100, batch_size = 256, type="DL_rf")
     print("trainin DL model with selected features by SVM features")
