@@ -272,7 +272,8 @@ def run_DL(data, label, feature_ids, top2_features, n_epoches = 2, batch_size = 
 
     model = NeuralNet(tr_set.dataset.dim).to(device)  # Construct model and move to device
     model_loss, model_loss_record = train(tr_set, dv_set, model, config, device)
-   
+    # load the best model
+    model.load_state_dict(torch.load(config['save_path']))
     plot_learning_curve(model_loss_record, title='deep model', type=type)
     preds = np.around(test(tt_set, model, device))
     # plot top 2 feature space
