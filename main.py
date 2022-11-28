@@ -42,7 +42,7 @@ def main():
 
     sample = pd.read_csv(sampled_filepath)
     features, labels, feature_names = pre_process(sample)
-
+    features_df = pre_process_df(sample)
     # remove
      
 
@@ -68,8 +68,8 @@ def main():
     # deep learning approach with selected features
     rf_top_features = ['activity_time', 'rating_entropy', 'date_var', 'RL', 'rating_variance', 'reviewer_dev', 'MRD', 'date_entropy', 'MNR', 'DFTLM']
     svm_top_features = ['MRD', 'rating_variance', 'density', 'MNR', 'date_var', 'activity_time', 'rating_entropy', 'date_entropy', 'singleton', 'RL']
-    rf_features = features[rf_top_features]
-    svm_features = features[svm_top_features]
+    rf_features = features_df[rf_top_features]
+    svm_features = features_df[svm_top_features]
     feature_id = range(len(svm_top_features))
     
     top2_rf = rf_top_features[:2]
