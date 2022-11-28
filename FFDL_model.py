@@ -107,7 +107,7 @@ def plot_learning_curve(loss_record, title=''):
     plt.title('Learning curve of {}'.format(title))
     plt.legend()
     plt.show()
-    plt.savefig("loss.png")
+    plt.savefig("./EVALUATIONS/loss.png")
 
 
 def plot_pred(dv_set, model, device, lim=35., preds=None, targets=None):
@@ -283,7 +283,7 @@ def run_DL(data, label, feature_ids, top2_features, n_epoches = 2, batch_size = 
     plt.xlabel(top1)
     plt.ylabel(top2)
     plt.legend(loc="upper left")
-    plt.savefig('visulaization.png')
+    plt.savefig('./EVALUATIONS/visulaization.png')
     save_path = ""
     save_pred(preds, save_path + 'pred.csv')
     evaluate(y_test, preds, type)
