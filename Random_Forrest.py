@@ -49,8 +49,8 @@ def train_rf(train_features, test_features, train_labels, test_labels,feature_na
     print("Precision:",metrics.precision_score(test_labels, y_pred))
     print("Recall:",metrics.recall_score(test_labels, y_pred))
     #print(classification_report(test_labels, y_pred))
-    joblib.dump(clf, "rf.joblib")
-    clf = joblib.load("rf.joblib")
+    joblib.dump(clf, "rf.joblib_v1")
+    clf = joblib.load("rf.joblib_v1")
     return feature_importance(clf,feature_names)
 
 def feature_importance(clf,datatset):
