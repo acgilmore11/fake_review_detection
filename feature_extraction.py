@@ -45,6 +45,12 @@ def pre_process(table):
     features = features.to_numpy()
     labels = np.array([1 if label == -1 else 0 for label in labels ])
     return features, labels, feature_names
+# return dataframe for DL
+def pre_process_df(table):
+    features = table.drop(['user_id', 'prod_id', "label", "date", "review"], axis=1)
+    for column in features.columns:
+        features[column] = features[column]  / features[column].abs().max()
+    return features
 
 def evaluate(test_labels,y_pred, type):
     tn, fp, fn, tp = confusion_matrix(test_labels, y_pred).ravel()
