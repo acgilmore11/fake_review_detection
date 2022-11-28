@@ -56,7 +56,7 @@ def evaluate(test_labels,y_pred, type):
     metrics = pd.DataFrame()
     metrics["metric_type"] = ['Accuracy', 'Precision', 'Recall', 'Specificity']
     metrics["value"] = metrics_val
-    metrics.to_csv(f"Metrics_{type}.csv", header=False, index=False)
+    metrics.to_csv(f"./EVALUATIONS/Metrics_{type}.csv", header=False, index=False)
 
 def review_metadata(table):
     """
