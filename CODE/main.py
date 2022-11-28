@@ -9,16 +9,30 @@ from FFDL_model import *
 
 def main():
     # check if sampled dataset already in repo
-    sampled_filepath = Path('dataset_v1.csv')
+
+    rootdir = os.getcwd()
+    correct_dir = False
+    for file in os.listdir(rootdir):
+        d = os.path.join(rootdir, file)
+        if os.path.isdir(d):
+            if 'CODE' in d.split('\\')[-1]:
+                correct_dir = True
+    if not correct_dir:
+        print("Error: Please run main.py from general repo directory. Ex. python ./CODE/main.py")
+        return
+    
+
+
+    sampled_filepath = Path(f'{os.getcwd()}/DATA/dataset_v1.csv')
     if not os.path.exists(sampled_filepath):
         # check if feature engineering has already been completed and consolidated into table
-        filepath = Path('review_feature_table.csv')
+        filepath = Path(f'{os.getcwd()}/DATA/review_feature_table.csv')
         if not os.path.exists(filepath):
             # download punkt package
             print("shouldn't be here")
             nltk.download('punkt')
 
-            data_path = "YelpCSV"
+            data_path = f'{os.getcwd()}/DATA/YelpCSV'
             cols_meta = ["user_id", "prod_id", "rating", "label", "date"]
             meta_data = pd.read_csv(data_path+"/metadata.csv", names=cols_meta)
             cols_reviewContent = ["user_id", "prod_id", "date", "review"]
@@ -30,12 +44,12 @@ def main():
             table=pd.concat([table, review_metadata(table), review_textual(table), reviewer_burst(table), behavioral_features(table), rating_features(table), temporal(table)], axis=1)  
 
             # writes dataframe containing all features to csv file
-            filepath.parent.mkdir(parents=True, exist_ok=True)  
+            os.makedirs(filepath, exist_ok=True)  
             table.to_csv(filepath, index=False)
     
         table = pd.read_csv(filepath)
 
-        sampled_filepath.parent.mkdir(parents=True, exist_ok=True)
+        os.makedirs(sampled_filepath, exist_ok=True)
         #undersample
         undersampled_table = undersample(table)
         undersampled_table.to_csv(sampled_filepath, index=False)
@@ -50,7 +64,6 @@ def main():
     train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size=0.2,random_state=573)
     
     # random forest and feature selection
-    # # random forest and feature selection
     
     # will return accuracy score plot for different parameters
     compare_rf(train_features,train_labels,test_features,test_labels)

@@ -106,7 +106,7 @@ def plot_learning_curve(loss_record, title='', type=''):
     plt.ylabel('MSE loss')
     plt.title('Learning curve of {}'.format(title))
     plt.legend()
-    plt.savefig(f"./EVALUATIONS/loss_{type}.png")
+    plt.savefig(f'{os.getcwd()}/EVALUATIONS/loss_{type}.png')
     plt.show()
     
 
@@ -245,7 +245,8 @@ def test(tt_set, model, device):
     
 def run_DL(data, label, feature_ids, top2_features, n_epoches = 2, batch_size = 10, type=''):
     device = get_device()                 # get the current available device ('cpu' or 'cuda')
-    os.makedirs('models', exist_ok=True)  # The trained model will be saved to ./models/
+    rootdir = os.getcwd()
+    os.makedirs(os.path.join(rootdir, 'CODE', 'models'), exist_ok=True)  # The trained model will be saved to ./models/
     target_only = True                   # TODO: Using 40 states & 2 tested_positive features
 
     config = {
@@ -257,7 +258,7 @@ def run_DL(data, label, feature_ids, top2_features, n_epoches = 2, batch_size = 
             # 'momentum': 0.9              # momentum 
         },
         'early_stop': 500,               # early stopping epochs (the number epochs since your model's last improvement)
-        'save_path': 'models/model.pth'  # your model will be saved here
+        'save_path': os.path.join(rootdir, 'CODE', 'models', 'model.pth')  # your model will be saved here
     }
 
 
@@ -284,7 +285,7 @@ def run_DL(data, label, feature_ids, top2_features, n_epoches = 2, batch_size = 
     plt.xlabel(top1)
     plt.ylabel(top2)
     plt.legend(loc="upper left")
-    plt.savefig(f'./EVALUATIONS/visulaization_{type}.png')
+    plt.savefig(f'{os.getcwd()}/EVALUATIONS/visulaization_{type}.png')
     save_path = ""
     save_pred(preds, save_path + 'pred.csv')
     evaluate(y_test, preds, type)

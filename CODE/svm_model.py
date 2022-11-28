@@ -16,12 +16,14 @@ def svm_feature_selection(train_features, train_labels, test_features, test_labe
     Trains svm model with inputted features. Visualizes and returns top n coeff feature names
     """
     # check if trained model already exists
-    if not os.path.exists('lin_svm_v2.joblib'):
-        train_lin_model(train_features, train_labels)
+    root = os.getcwd()
+    filepath = os.path.join(root, 'CODE', 'models', 'lin_svm_v2.joblib')
+    if not os.path.exists(filepath):
+        train_lin_model(train_features, train_labels, filepath)
 
     # uncomment this line to predict classification for test set
     # y_pred = clf.predict(X_test)
-    clf = load('lin_svm_v2.joblib')
+    clf = load(filepath)
 
     test_pred = clf.predict(test_features)
     evaluate(test_labels, test_pred, type)
@@ -29,12 +31,12 @@ def svm_feature_selection(train_features, train_labels, test_features, test_labe
     return feature_selection(clf, feature_names)
 
 
-def train_lin_model(features, labels):
+def train_lin_model(features, labels, filepath):
     clf = svm.SVC(kernel='linear')
     clf.fit(features, labels)
 
     # save svm model
-    dump(clf, 'lin_svm_v2.joblib')
+    dump(clf, filepath)
 
 def feature_selection(classifier, feature_names, n=10):
     coef = classifier.coef_.ravel()
@@ -56,7 +58,7 @@ def feature_selection(classifier, feature_names, n=10):
     plt.xticks(np.arange(0, n), feature_names[top_coefficients], rotation=60, ha='right')
     plt.ylabel("Importance")
     plt.tight_layout()
-    plt.savefig('./EVALUATIONS/SVM_feature_importance.png')
+    plt.savefig(f'{os.getcwd()}/EVALUATIONS/SVM_feature_importance.png')
     plt.show()
 
 

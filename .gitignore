@@ -1,7 +1,9 @@
 /venv
-/YelpCSV
 /__pycache__
 /.idea
 /review_feature_table.csv
-/dataset_v1.csv
+/DATA/*.csv
+/DATA/YelpCSV
+/CODE/__pycache__
+/pred.csv
 /*.ipynb
