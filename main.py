@@ -61,19 +61,19 @@ def main():
 
     # SVM and feature selection
     # will return names of top 10 features
-    svm_top_features = svm_feature_selection(train_features, train_labels, test_features, test_labels, feature_names, type="lin_svm")
+    svm_top_features, top2_svm = svm_feature_selection(train_features, train_labels, test_features, test_labels, feature_names, type="lin_svm")
     print(svm_top_features)
     
 
     # deep learning approach with selected features
-    rf_top_features = ['activity_time', 'rating_entropy', 'date_var', 'RL', 'rating_variance', 'reviewer_dev', 'MRD', 'date_entropy', 'MNR', 'DFTLM']
-    svm_top_features = ['MRD', 'rating_variance', 'density', 'MNR', 'date_var', 'activity_time', 'rating_entropy', 'date_entropy', 'singleton', 'RL']
+    # rf_top_features = ['activity_time', 'rating_entropy', 'date_var', 'RL', 'rating_variance', 'reviewer_dev', 'MRD', 'date_entropy', 'MNR', 'DFTLM']
+    # svm_top_features = ['MRD', 'rating_variance', 'density', 'MNR', 'date_var', 'activity_time', 'rating_entropy', 'date_entropy', 'singleton', 'RL']
     rf_features = features_df[rf_top_features]
     svm_features = features_df[svm_top_features]
     feature_id = range(len(svm_top_features))
     
     top2_rf = rf_top_features[:2]
-    top2_svm = svm_top_features[:2]
+    # top2_svm = svm_top_features[:2]
     print("trainin DL model with all features")
     run_DL(features_df, labels, feature_id, top2_rf , n_epoches = 100, batch_size = 256, type="DL_all")
     print("trainin DL model with selected features by RF features")

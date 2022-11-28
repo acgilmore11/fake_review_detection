@@ -106,8 +106,9 @@ def plot_learning_curve(loss_record, title=''):
     plt.ylabel('MSE loss')
     plt.title('Learning curve of {}'.format(title))
     plt.legend()
-    plt.show()
     plt.savefig("./EVALUATIONS/loss.png")
+    plt.show()
+    
 
 
 def plot_pred(dv_set, model, device, lim=35., preds=None, targets=None):

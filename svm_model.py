@@ -38,9 +38,14 @@ def train_lin_model(features, labels):
 
 def feature_selection(classifier, feature_names, n=10):
     coef = classifier.coef_.ravel()
+
+    print(coef)
     
     #get top 5 positive and negative coefficients
-    top_coefficients = np.hstack([np.argsort(coef)[-int(n/2):], np.argsort(coef)[:int(n/2)]])
+    top_positive = np.argsort(coef)[-int(n/2):]
+    top_negative = np.argsort(coef)[:int(n/2)]
+    top_coefficients = np.hstack([top_negative, top_positive])
+
     print(top_coefficients)
 
     # create plot
@@ -53,8 +58,10 @@ def feature_selection(classifier, feature_names, n=10):
     plt.tight_layout()
     plt.savefig('./EVALUATIONS/SVM_feature_importance.png')
     plt.show()
+
+
     
 
-    return [feature_names[i] for i in top_coefficients]
+    return [feature_names[i] for i in top_coefficients], [feature_names[top_negative[0]], feature_names[top_positive[-1]]]
 
 
