@@ -73,14 +73,18 @@ def feature_importance(clf,feature_names):
     plt.xlabel('Importance', fontsize=25, weight = 'bold')
     plt.ylabel('Features', fontsize=25, weight = 'bold')
     plt.title('Feature Importance', fontsize=25, weight = 'bold')
+    plt.savefig('./EVALUATIONS/RF_feature_importance.png')
     plt.show()
+    
     return [importances['Features'][i] for i in range(10)]
     
 def pca_visualization(train_features,labels):
     pca = PCA(n_components=2)
     components = pca.fit_transform(train_features)
     fig = px.scatter(components, x=0, y=1, color=labels)
+    # fig.write_image("./EVALUATIONS/RF_PCA_Visualization.png")
     fig.show()
+    
 
 def compare_rf(x_train,y_train,x_test,y_test):
     n_estimators = [1, 2, 4, 8, 16, 32, 64, 100, 200]
@@ -105,5 +109,7 @@ def compare_rf(x_train,y_train,x_test,y_test):
     plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
     plt.ylabel('AUC score')
     plt.xlabel('n_estimators')
+    plt.savefig('./EVALUATIONS/RF_accuracy_scores.png')
     plt.show()
+    
     
