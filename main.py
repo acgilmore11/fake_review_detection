@@ -5,7 +5,7 @@ from pathlib import Path
 from svm_model import *
 from feature_extraction import *
 from Random_Forrest import *
-
+from FFDL_model import *
 
 def main():
     # check if sampled dataset already in repo
@@ -69,7 +69,20 @@ def main():
     
 
     # deep learning approach with selected features
-
+    rf_top_features = ['activity_time', 'rating_entropy', 'date_var', 'RL', 'rating_variance', 'reviewer_dev', 'MRD', 'date_entropy', 'MNR', 'DFTLM']
+    svm_top_features = ['MRD', 'rating_variance', 'density', 'MNR', 'date_var', 'activity_time', 'rating_entropy', 'date_entropy', 'singleton', 'RL']
+    rf_features = features[rf_top_features]
+    svm_features = features[svm_top_features]
+    feature_id = range(len(svm_top_features))
+    
+    top2_rf = rf_top_features[:2]
+    top2_svm = svm_top_features[:2]
+    print("trainin DL model with all features")
+    run_DL(features, labels, feature_id, top2_rf , n_epoches = 100, batch_size = 256)
+    print("trainin DL model with selected features by RF features")
+    run_DL(rf_features, labels, feature_id, top2_rf , n_epoches = 100, batch_size = 256)
+    print("trainin DL model with selected features by SVM features")
+    run_DL(svm_features, labels, feature_id, top2_svm , n_epoches = 100, batch_size = 256)
 
 
 if __name__ == "__main__":
