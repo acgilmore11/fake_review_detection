@@ -49,7 +49,8 @@ def feature_selection(classifier, feature_names, n=10):
     colors = ['red' if c < 0 else 'blue' for c in coef[top_coefficients]]
     plt.bar(np.arange(n), coef[top_coefficients], color=colors)
     feature_names = np.array(feature_names)
-    plt.xticks(np.arange(1, 1 + n), feature_names[top_coefficients], rotation=60, ha='right')
+    plt.xticks(np.arange(0, n), feature_names[top_coefficients], rotation=60, ha='right')
+    plt.ylabel("Importance")
     plt.show()
 
     return [feature_names[i] for i in top_coefficients]
