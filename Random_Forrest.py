@@ -29,6 +29,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.legend_handler import HandlerLine2D
 import plotly.express as px
+import os.path
 
 
 # perform undersampling
@@ -42,15 +43,17 @@ def train_rf(train_features, test_features, train_labels, test_labels,feature_na
     #scaled_train = scale.fit_transform(train_features) 
     # Split the data into training and testing sets
     #train_features, test_features, train_labels, test_labels = train_test_split(scaled_train, labels, test_size = 0.25, random_state = 42)
-    clf = RandomForestClassifier(n_estimators=64,max_depth=10)
-    clf.fit(train_features, train_labels)
+    if not os.path.exists('rf_v1.joblib'):
+        clf = RandomForestClassifier(n_estimators=64,max_depth=10)
+        clf.fit(train_features, train_labels)
+        joblib.dump(clf, "rf_v1.joblib")
+    clf = joblib.load('rf_v1.joblib')    
     y_pred=clf.predict(test_features)
     print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
     print("Precision:",metrics.precision_score(test_labels, y_pred))
     print("Recall:",metrics.recall_score(test_labels, y_pred))
     #print(classification_report(test_labels, y_pred))
-    joblib.dump(clf, "rf.joblib_v1")
-    clf = joblib.load("rf.joblib_v1")
+
     return feature_importance(clf,feature_names)
 
 def feature_importance(clf,datatset):
