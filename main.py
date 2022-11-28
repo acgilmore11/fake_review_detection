@@ -58,9 +58,6 @@ def main():
     rf_top_features = train_rf(train_features, test_features, train_labels, test_labels,feature_names)
     print(rf_top_features)
     pca_visualization(train_features,train_labels)
-    # will return names of top 10 features and return accuracy of the model
-    rf_top_features = train_rf(train_features, test_features, train_labels, test_labels,table)
-    print(rf_top_features)
 
     # SVM and feature selection
     # will return names of top 10 features
