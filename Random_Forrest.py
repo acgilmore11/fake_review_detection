@@ -74,8 +74,7 @@ def feature_importance(clf,feature_names):
     plt.xlabel('Importance', fontsize=25, weight = 'bold')
     plt.ylabel('Features', fontsize=25, weight = 'bold')
     plt.title('Feature Importance', fontsize=25, weight = 'bold')
-    display(plt.show())
-    display(importances)
+    plt.show()
     return [importances['Features'][i] for i in range(10)]
     
 def pca_visualization(train_features,labels):
