@@ -53,11 +53,11 @@ def train_rf(train_features, test_features, train_labels, test_labels,feature_na
     clf = joblib.load("rf.joblib_v1")
     return feature_importance(clf,feature_names)
 
-def feature_importance(clf,datatset):
+def feature_importance(clf,feature_names):
     
 
     feats = {}
-    for feature, importance in zip(datatset.columns, clf.feature_importances_):
+    for feature, importance in zip(feature_names, clf.feature_importances_):
         feats[feature] = importance
     importances = pd.DataFrame.from_dict(feats, orient='index').rename(columns={0: 'Gini-Importance'})
     importances = importances.sort_values(by='Gini-Importance', ascending=False)
