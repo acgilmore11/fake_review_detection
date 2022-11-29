@@ -99,11 +99,11 @@ def main():
 
     print("trainin DL model with union of features")
     feature_id = range(len(union_features))
-    run_DL(svm_features, labels, feature_id, top2_svm , n_epoches = 100, batch_size = 256, type="DL_svm")
+    run_DL(svm_features, labels, feature_id, top2_svm , n_epoches = 100, batch_size = 256, type="union")
 
     print("trainin DL model with intersection of features")
     feature_id = range(len(intersect_features))
-    run_DL(svm_features, labels, feature_id, top2_svm , n_epoches = 100, batch_size = 256, type="DL_svm")
+    run_DL(svm_features, labels, feature_id, top2_svm , n_epoches = 100, batch_size = 256, type="intersect")
 
 
 if __name__ == "__main__":
