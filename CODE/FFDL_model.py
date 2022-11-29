@@ -153,8 +153,8 @@ class NeuralNet(nn.Module):
     def __init__(self, input_dim):
         super(NeuralNet, self).__init__()
         self.layer1 = nn.Linear(input_dim, 100)
-        self.layer2 = nn.Linear(100, 16)
-        self.out =  nn.Linear(16, 1)
+        self.layer2 = nn.Linear(100, 2)
+        self.out =  nn.Linear(2, 1)
         # cross entropy loss
         self.criterion = nn.BCELoss()
 
